@@ -3,23 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35825.156
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "CampaignManager.WebApp", "CampaignManagerReact\CampaignManager.WebApp.esproj", "{6AF32E60-5243-E28E-D039-DE15F3BDB1B4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CampaignManager.WebApp", "CampaignManager.WebApp\CampaignManager.WebApp.csproj", "{E3A825C5-1963-0437-28C1-10AF09DA067D}"
 	ProjectSection(ProjectDependencies) = postProject
-		{21094D6F-2823-4CC6-9E60-0DE211F395CB} = {21094D6F-2823-4CC6-9E60-0DE211F395CB}
-		{3ABDE7C6-E214-490C-8843-8960096DFA5E} = {3ABDE7C6-E214-490C-8843-8960096DFA5E}
+		{21E425B6-DA91-0A0A-EFB4-842F3172327E} = {21E425B6-DA91-0A0A-EFB4-842F3172327E}
+		{A02472AA-C6CE-97AC-B8B7-5DAE28B3A90F} = {A02472AA-C6CE-97AC-B8B7-5DAE28B3A90F}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CampaignManager.Data", "Data\CampaignManager.Data.csproj", "{3ABDE7C6-E214-490C-8843-8960096DFA5E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CampaignManager.Services", "CampaignManager.Service\CampaignManager.Services.csproj", "{A02472AA-C6CE-97AC-B8B7-5DAE28B3A90F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CampaignManager.Services", "Service\CampaignManager.Services.csproj", "{21094D6F-2823-4CC6-9E60-0DE211F395CB}"
-	ProjectSection(ProjectDependencies) = postProject
-		{3ABDE7C6-E214-490C-8843-8960096DFA5E} = {3ABDE7C6-E214-490C-8843-8960096DFA5E}
-	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CampaignManager.WebApp2", "CampaignManager.WebApp2\CampaignManager.WebApp2.csproj", "{5026DF7B-5619-49D2-BC00-7DC0F31E3D9A}"
-	ProjectSection(ProjectDependencies) = postProject
-		{3ABDE7C6-E214-490C-8843-8960096DFA5E} = {3ABDE7C6-E214-490C-8843-8960096DFA5E}
-	EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CampaignManager.Data", "CampaignManager.Data\CampaignManager.Data.csproj", "{21E425B6-DA91-0A0A-EFB4-842F3172327E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,24 +19,18 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{6AF32E60-5243-E28E-D039-DE15F3BDB1B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6AF32E60-5243-E28E-D039-DE15F3BDB1B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6AF32E60-5243-E28E-D039-DE15F3BDB1B4}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{6AF32E60-5243-E28E-D039-DE15F3BDB1B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6AF32E60-5243-E28E-D039-DE15F3BDB1B4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6AF32E60-5243-E28E-D039-DE15F3BDB1B4}.Release|Any CPU.Deploy.0 = Release|Any CPU
-		{3ABDE7C6-E214-490C-8843-8960096DFA5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3ABDE7C6-E214-490C-8843-8960096DFA5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3ABDE7C6-E214-490C-8843-8960096DFA5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3ABDE7C6-E214-490C-8843-8960096DFA5E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{21094D6F-2823-4CC6-9E60-0DE211F395CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{21094D6F-2823-4CC6-9E60-0DE211F395CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{21094D6F-2823-4CC6-9E60-0DE211F395CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{21094D6F-2823-4CC6-9E60-0DE211F395CB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5026DF7B-5619-49D2-BC00-7DC0F31E3D9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5026DF7B-5619-49D2-BC00-7DC0F31E3D9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5026DF7B-5619-49D2-BC00-7DC0F31E3D9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5026DF7B-5619-49D2-BC00-7DC0F31E3D9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E3A825C5-1963-0437-28C1-10AF09DA067D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3A825C5-1963-0437-28C1-10AF09DA067D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3A825C5-1963-0437-28C1-10AF09DA067D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3A825C5-1963-0437-28C1-10AF09DA067D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A02472AA-C6CE-97AC-B8B7-5DAE28B3A90F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A02472AA-C6CE-97AC-B8B7-5DAE28B3A90F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A02472AA-C6CE-97AC-B8B7-5DAE28B3A90F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A02472AA-C6CE-97AC-B8B7-5DAE28B3A90F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21E425B6-DA91-0A0A-EFB4-842F3172327E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21E425B6-DA91-0A0A-EFB4-842F3172327E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21E425B6-DA91-0A0A-EFB4-842F3172327E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21E425B6-DA91-0A0A-EFB4-842F3172327E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

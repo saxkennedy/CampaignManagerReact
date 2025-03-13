@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
+		<TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
+		<IsPackable>false</IsPackable>
+		<SpaRoot>App\</SpaRoot>
+	</PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="8.0.10" />
+  </ItemGroup>
+  <ItemGroup>
+  	<Content Remove="$(SpaRoot)**" />
+  	<None Remove="$(SpaRoot)**" />
+  	<None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="App\package-lock.json" />
+    <Content Include="App\package.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CampaignManager.Data\CampaignManager.Data.csproj" />
+    <ProjectReference Include="..\CampaignManager.Service\CampaignManager.Services.csproj" />
+  </ItemGroup>
+
+</Project>

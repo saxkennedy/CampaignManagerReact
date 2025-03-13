@@ -1,0 +1,5 @@
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=DESKTOP-E9OPH8P\\CS419; Database=CampaignManager; Integrated Security=True; TrustServerCertificate=True"
+  }
+}
