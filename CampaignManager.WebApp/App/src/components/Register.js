@@ -3,21 +3,29 @@ import { useNavigate, Link } from 'react-router-dom';
 import UserService from '../api/UserService';
 import { Container, Typography, TextField, Button, Paper, Box } from '@mui/material';
 
-function Register({ setUser }) {
+export const Register = (props) => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+    const [password, setPassword] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    let user = { Email: email, Password: password };
+      e.preventDefault();
+      var userRequest = { Email: email, Password: password, FirstName: firstName, LastName: lastName };
     try {
-      await UserService.CreateUser(user);
-      setUser(user);
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err);
+        const res = await UserService.CreateUser(userRequest);
+        if (res) {
+            props.setUser(res.id); // Assuming the response contains the user ID
+            navigate('/dashboard');
+        }
+        else {
+            throw new Error("User creation failed");
+        }
+      
+    }
+    catch (err) { setError(err);
     }
   };
 

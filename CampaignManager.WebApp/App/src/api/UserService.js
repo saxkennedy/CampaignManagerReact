@@ -6,12 +6,12 @@ class UserService {
         let url = '/api/user/createUser';
         return Api.fetch(url, {
             method: 'POST',
-            body: JSON.stringify({ user: user })
+            body: JSON.stringify({ Email: user.Email, Password: user.Password, FirstName: user.FirstName, LastName: user.LastName })
         });
     }
 
     async GetUser(email, password) {
-        return Api.fetch('/api/user/getUser/${email}/${password}');
+        return Api.fetch(`/api/user/getUser/${email}/${password}`);
     }
 }
 

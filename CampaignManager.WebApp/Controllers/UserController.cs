@@ -1,6 +1,8 @@
 using CampaignManager.Services.Abstractions;
+using CampaignManager.Services.Models;
 using Data.Models;
 using Microsoft.AspNetCore.Mvc;
+
 
 namespace CampaignManager.WebApp.Controllers
 {
@@ -15,14 +17,16 @@ namespace CampaignManager.WebApp.Controllers
         }
         [HttpPost]
         [Route("createUser")]
-        public void CreateUser([FromBody] User user)
+        public async Task<UserResponse> CreateUser( [FromBody] NewUserRequest user)
         {
-            UserService.CreateUser(user);
+            UserResponse response = await  UserService.CreateUser(user);
+            return response;
         }
         [HttpGet("getUser/{email}/{password}")]
-        public Task<User> GetUser(string email, string password)
+        public async Task<UserResponse> GetUser(string email, string password)
         {
-            return UserService.GetUser(email,password);
+            UserResponse response= await UserService.GetUser(email, password);
+            return response;
         }
     }
 }

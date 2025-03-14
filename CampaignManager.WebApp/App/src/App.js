@@ -15,13 +15,17 @@ export class App extends Component {
         }
     }
 
+    setUser = (user) => {
+        this.setState({ user: user });
+    }
+
     render() {
         return (
             <div>
                 <Router>
-                <Routes>
-                    <Route path="/login" element={!this.state.user ? <Login /> : <Navigate to="/dashboard" />} />
-                        <Route path="/register" element={!this.state.user ? <Register/> : <Navigate to="/dashboard" />} />
+                    <Routes>
+                        <Route path="/login" element={!this.state.user ? <Login user={this.state.user} setUser={this.setUser} /> : <Navigate to="/dashboard" />} />
+                        <Route path="/register" element={!this.state.user ? <Register setUser={this.setUser} /> : <Navigate to="/dashboard" />} />
                         <Route path="/dashboard" element={this.state.user ? <Dashboard user={this.state.user} /> : <Navigate to="/login" />} />
                         <Route path="/" element={<Navigate to="/dashboard" />} />
                     </Routes>

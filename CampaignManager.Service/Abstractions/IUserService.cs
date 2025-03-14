@@ -1,10 +1,11 @@
-﻿using Data.Models;
+﻿using CampaignManager.Services.Models;
+using Data.Models;
 
 namespace CampaignManager.Services.Abstractions
 {
     public interface IUserService
     {
-        public void CreateUser(User user);
-        public Task<User> GetUser(string email, string password);
+        public Task<UserResponse> CreateUser(NewUserRequest user);
+        public Task<UserResponse> GetUser(string email, string password);
     }
 }

@@ -12,12 +12,18 @@ export const Login = (props) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
       try {
-          const response = await UserService.GetUser(email, password);
-      setUser(response.data.user);
-      navigate('/dashboard');
+              const res = await UserService.GetUser(email, password)
+              if (res) {
+                  props.setUser(res.id);
+                  navigate('/dashboard');
+              }
+              else {
+                  throw new Error("User Not Found");
+              }
+                
     }
     catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      setError('Login failed');
     }
   };
 
@@ -52,7 +58,7 @@ export const Login = (props) => {
             Login
           </Button>
           <Box sx={{ mt: 2 }}>
-            <Link to="/register">Register</Link>
+                      <Link to="/register">Register + {props.user}</Link>
           </Box>
           {error && (
             <Box sx={{ mt: 2 }}>
