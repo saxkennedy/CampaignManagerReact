@@ -1,37 +1,26 @@
 import { useState, useEffect } from 'react';
-import { Container, Title, Text, Paper, Stack } from '@mantine/core';
+import { Container, Typography, Paper, Stack } from '@mui/material';
 
-function Dashboard({ user }) {
+export const Dashboard = (props) => {
   const [content, setContent] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    //const fetchContent = async () => {
-    //  try {
-    //    const response = await campaign.getContent();
-    //    setContent(response.data);
-    //  } catch (err) {
-    //    setError('Failed to load campaign content');
-    //  } finally {
-    //    setLoading(false);
-    //  }
-    //};
-    //
-    //fetchContent();
-  }, []);
-
-  if (loading) return <div>Loading...</div>;
+  if (props.fetching) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
   return (
-    <Container size="lg" py="xl">
-      <Title order={1} mb="xl">Campaign Dashboard</Title>
-      <Stack spacing="md">
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Typography variant="h1" component="h1" gutterBottom>
+        Campaign Dashboard
+      </Typography>
+      <Stack spacing={2}>
         {content.map((item) => (
-          <Paper key={item.id} p="md" withBorder>
-            <Title order={3}>{item.title}</Title>
-            <Text>{item.description}</Text>
+          <Paper key={item.id} sx={{ p: 2, border: 1 }}>
+            <Typography variant="h3" component="h3">
+              {item.title}
+            </Typography>
+            <Typography>{item.description}</Typography>
             {item.imageUrl && (
               <img 
                 src={item.imageUrl} 

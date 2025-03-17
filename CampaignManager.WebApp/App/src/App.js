@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
@@ -19,16 +19,30 @@ export class App extends Component {
         this.setState({ user: user });
     }
 
+    login = () => {
+        return(<Login user = { this.state.user } setUser = { this.setUser } />)
+    }
+
+    register = () => {
+        return (<Register setUser={this.setUser} />)
+    }
     render() {
         return (
             <div>
                 <Router>
-                    <Routes>
-                        <Route path="/login" element={!this.state.user ? <Login user={this.state.user} setUser={this.setUser} /> : <Navigate to="/dashboard" />} />
-                        <Route path="/register" element={!this.state.user ? <Register setUser={this.setUser} /> : <Navigate to="/dashboard" />} />
+                    {this.state.user &&
+                        <>
+
+                            <Route path="/login" render={this.login} />
+                            <Route path="/register" render={this.register} />
+                        </>
+                    }
+                    <>
+                    <Navigation>                        
                         <Route path="/dashboard" element={this.state.user ? <Dashboard user={this.state.user} /> : <Navigate to="/login" />} />
+                    </Navigation>
                         <Route path="/" element={<Navigate to="/dashboard" />} />
-                    </Routes>
+                    </>
                 </Router>
             </div>
         );
