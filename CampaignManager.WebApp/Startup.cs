@@ -74,6 +74,7 @@ namespace CampaignManager.WebApp
                 spa.Options.SourcePath = "App";
                 if (env.IsDevelopment())
                 {
+                    spa.Options.StartupTimeout = TimeSpan.FromSeconds(10000);
                     spa.UseReactDevelopmentServer(npmScript: "start");
                 }
             });

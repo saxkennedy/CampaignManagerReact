@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
+import Navigation from './components/Navigation';
 import React, { Component } from 'react';
 
 export class App extends Component {
@@ -20,29 +21,24 @@ export class App extends Component {
     }
 
     login = () => {
-        return(<Login user = { this.state.user } setUser = { this.setUser } />)
+        return (<Login user={this.state.user} setUser={this.setUser} />)
     }
 
     register = () => {
         return (<Register setUser={this.setUser} />)
     }
+
     render() {
         return (
             <div>
                 <Router>
-                    {this.state.user &&
-                        <>
-
-                            <Route path="/login" render={this.login} />
-                            <Route path="/register" render={this.register} />
-                        </>
-                    }
-                    <>
-                    <Navigation>                        
+                    {this.state.user && <Navigation />}
+                    <Routes>
+                        <Route path="/login" element={<Login user={this.state.user} setUser={this.setUser} />} />
+                        <Route path="/register" element={<Register setUser={this.setUser} />} />
                         <Route path="/dashboard" element={this.state.user ? <Dashboard user={this.state.user} /> : <Navigate to="/login" />} />
-                    </Navigation>
                         <Route path="/" element={<Navigate to="/dashboard" />} />
-                    </>
+                    </Routes>
                 </Router>
             </div>
         );

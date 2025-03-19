@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CampaignManager.Data\CampaignManager.Data.csproj" />
-    <ProjectReference Include="..\Data\CampaignManager.Data.csproj" />
   </ItemGroup>
 
 </Project>

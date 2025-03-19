@@ -1,31 +1,37 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import UserService from '../api/UserService';
 import { Container, Typography, TextField, Button, Paper, Box } from '@mui/material';
 
 export const Register = (props) => {
   const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
+  const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(String(email).toLowerCase());
+  };
+
   const handleSubmit = async (e) => {
-      e.preventDefault();
-      var userRequest = { Email: email, Password: password, FirstName: firstName, LastName: lastName };
-    try {
-        const res = await UserService.CreateUser(userRequest);
-        if (res) {
-            props.setUser(res.id); // Assuming the response contains the user ID
-            navigate('/dashboard');
-        }
-        else {
-            throw new Error("User creation failed");
-        }
-      
+    e.preventDefault();
+    if (!validateEmail(email)) {
+      setError('Invalid email format');
+      return;
     }
-    catch (err) { setError(err);
+    var userRequest = { Email: email, Password: password, FirstName: firstName, LastName: lastName };
+    try {
+      const res = await UserService.CreateUser(userRequest);
+      if (res) {
+        navigate('/login'); // Redirect to login screen after successful registration
+      } else {
+        throw new Error("User creation failed");
+      }
+    } catch (err) {
+      setError(err.message);
     }
   };
 
