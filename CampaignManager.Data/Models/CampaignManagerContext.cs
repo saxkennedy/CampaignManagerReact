@@ -15,7 +15,9 @@ public partial class CampaignManagerContext : DbContext
 
     public virtual DbSet<Campaign> Campaigns { get; set; }
 
-    public virtual DbSet<Persona> Personas { get; set; }
+    public virtual DbSet<CampaignPersona> CampaignPersonas { get; set; }
+
+    public virtual DbSet<SitePersona> SitePersonas { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
 
@@ -31,7 +33,22 @@ public partial class CampaignManagerContext : DbContext
                 .HasMaxLength(250);
         });
 
-        modelBuilder.Entity<Persona>(entity =>
+        modelBuilder.Entity<CampaignPersona>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Campaign__3214EC07B03C0EB5");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.DisplayName)
+                .IsRequired()
+                .HasMaxLength(120);
+
+            entity.HasOne(d => d.Campaign).WithMany(p => p.CampaignPersonas)
+                .HasForeignKey(d => d.CampaignId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__CampaignP__Campa__6FE99F9F");
+        });
+
+        modelBuilder.Entity<SitePersona>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Personas__3214EC07D18E55D5");
 

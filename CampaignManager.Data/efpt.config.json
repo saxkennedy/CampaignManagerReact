@@ -15,11 +15,15 @@
    "T4TemplatePath": null,
    "Tables": [
       {
+         "Name": "[dbo].[CampaignPersonas]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[Campaigns]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[Personas]",
+         "Name": "[dbo].[SitePersonas]",
          "ObjectType": 0
       },
       {
