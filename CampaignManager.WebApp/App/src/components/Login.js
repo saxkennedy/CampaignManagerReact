@@ -58,7 +58,7 @@ export const Login = (props) => {
             Login
           </Button>
           <Box sx={{ mt: 2 }}>
-                      <Link to="/register">Register + {props.user}</Link>
+                      <Link to="/register">Register {props.user}</Link>
           </Box>
           {error && (
             <Box sx={{ mt: 2 }}>

@@ -5,11 +5,15 @@ using System.Collections.Generic;
 
 namespace Data.Models;
 
-public partial class Persona
+public partial class CampaignPersona
 {
     public Guid Id { get; set; }
 
     public string DisplayName { get; set; }
 
-    public virtual ICollection<User> Users { get; set; } = new List<User>();
+    public Guid CampaignId { get; set; }
+
+    public int Hierarchy { get; set; }
+
+    public virtual Campaign Campaign { get; set; }
 }

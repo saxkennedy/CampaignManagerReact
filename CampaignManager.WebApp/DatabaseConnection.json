@@ -1,5 +1,5 @@
 {
     "ConnectionStrings": {
-        "DefaultConnection": "Server=tcp:DESKTOP-RIF19K0\\ENDERDND22,49172; Initial Catalog=CampaignManager; User ID=CampaignManagerReact; Password=Tudre75; TrustServerCertificate=True"
+        "DefaultConnection": "Server=tcp:DESKTOP-RIF19K0\\ENDERDND22,49172; Initial Catalog=CampaignManager; User ID=CampaignManagerReact; Password=Tudre75!; TrustServerCertificate=True"
     }
 }

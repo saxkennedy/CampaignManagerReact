@@ -1,65 +1,37 @@
 ﻿import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AppBar, Toolbar, Typography, Button } from '@mui/material';
 
-export const Navigation = () => {
+export const Navigation = (props) => {
     const navigate = useNavigate();
 
-    const handleLogout = () => {
-        // Perform logout logic here
-        navigate('/login');
-    };
-
-    const navigationBarStyle = {
-        position: 'fixed',
-        top: 0,
-        width: '100%',
-        backgroundColor: '#333',
-        color: 'white',
-        textAlign: 'center',
-        padding: '10px 0',
-        zIndex: 1000
-    };
-
-    const ulStyle = {
-        listStyleType: 'none',
-        margin: 0,
-        padding: 0,
-        display: 'flex',
-        justifyContent: 'space-around'
-    };
-
-    const liStyle = {
-        display: 'inline'
-    };
-
-    const aStyle = {
-        color: 'white',
-        textDecoration: 'none'
-    };
-
-    const aHoverStyle = {
-        textDecoration: 'underline'
+    const handleNavigate = (route) => {
+        var navRoute = "/" + route;
+        if (route == "login") {
+            props.setUser(null);
+        }
+        navigate(navRoute);
     };
 
     return (
-        <div style={navigationBarStyle}>
-            <ul style={ulStyle}>
-                <li style={liStyle}>Campaign Info 1</li>
-                <li style={liStyle}>Campaign Info 2</li>
-                <li style={liStyle}>
-                    <a 
-                        href="#" 
-                        onClick={handleLogout} 
-                        style={aStyle} 
-                        onMouseOver={(e) => e.target.style.textDecoration = aHoverStyle.textDecoration}
-                        onMouseOut={(e) => e.target.style.textDecoration = aStyle.textDecoration}
-                    >
-                        Logout
-                    </a>
-                </li>
-            </ul>
-        </div>
+        <AppBar position="fixed">
+            <Toolbar>
+                <Button color="inherit" onClick={() => handleNavigate("dashboard")} sx={{ flexGrow: 1 }}>
+                    Home
+                </Button>
+                <Button color="inherit" onClick={() => handleNavigate("campaignMaterial")} sx={{ flexGrow: 1 }}>
+                    Campaign Material
+                </Button>
+                <Button color="inherit" onClick={() => handleNavigate("characterRoller")} sx={{ flexGrow: 1 }}>
+                    Character Roller
+                </Button>
+                <Button color="inherit" onClick={() => handleNavigate("login")} sx={{ flexGrow: 1 }}>
+                    Logout
+                </Button>
+            </Toolbar>
+        </AppBar>
     );
 };
+
 
 export default Navigation;

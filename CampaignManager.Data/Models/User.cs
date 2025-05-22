@@ -23,5 +23,5 @@ public partial class User
 
     public string Password { get; set; }
 
-    public virtual Persona Persona { get; set; }
+    public virtual SitePersona Persona { get; set; }
 }

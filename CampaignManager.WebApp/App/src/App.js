@@ -30,15 +30,19 @@ export class App extends Component {
 
     render() {
         return (
-            <div>
+            <div>                
                 <Router>
-                    {this.state.user && <Navigation />}
-                    <Routes>
-                        <Route path="/login" element={<Login user={this.state.user} setUser={this.setUser} />} />
-                        <Route path="/register" element={<Register setUser={this.setUser} />} />
-                        <Route path="/dashboard" element={this.state.user ? <Dashboard user={this.state.user} /> : <Navigate to="/login" />} />
-                        <Route path="/" element={<Navigate to="/dashboard" />} />
-                    </Routes>
+                    <div style={{height:"4vh"} }>
+                        {this.state.user && <Navigation user={this.state.user} setUser={this.setUser} />}
+                    </div>
+                    <div style={{ height: "96vh", width:"100vw" }}>
+                        <Routes>                        
+                            <Route path="/login" element={<Login user={this.state.user} setUser={this.setUser} />} />
+                            <Route path="/register" element={<Register setUser={this.setUser} />} />
+                            <Route path="/dashboard" element={this.state.user ? <Dashboard user={this.state.user} /> : <Navigate to="/login" />} />
+                            <Route path="/" element={<Navigate to="/dashboard" />} />
+                        </Routes>     
+                    </div>
                 </Router>
             </div>
         );
