@@ -12,10 +12,9 @@ export const Dashboard = (props) => {
     if (props.fetching) return <div>Loading...</div>;
     if (error) return <div>{error}</div>;
 
-    
-    return (
-        <>
 
+    return (
+        <>           
             <div style={{
             backgroundImage: backgroundUrl, 
             backgroundSize: 'cover', 
