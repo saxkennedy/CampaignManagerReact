@@ -26,15 +26,7 @@ export const CampaignSideNav = ({ categories }) => {
             <div key={child.name}>
                 <ListItem button onClick={() => handleClick(child.name)}>
                     <ListItemText primary={child.name} />
-                    {openCategories[child.name] ? <style>
-                        .material-symbols-outlined {
-                            font - variation - settings:
-                        'FILL' 0,
-                        'wght' 400,
-                        'GRAD' 0,
-                        'opsz' 24
-}
-                    </style> : <ExpandMoreIcon />}
+                    {openCategories[child.name] ? "^" : ">"}
                 </ListItem>
                 <Collapse in={openCategories[child.name]} timeout="auto" unmountOnExit>
                     <List component="div" disablePadding>
