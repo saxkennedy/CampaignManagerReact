@@ -1,10 +1,10 @@
-﻿using CampaignManager.Services.Abstractions;
-using CampaignManager.Services.Models;
+﻿using CampaignManager.Services.Models;
+using CampaignManager.Services.Services.Abstractions;
 using Data.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
-namespace CampaignManager.Services
+namespace CampaignManager.Services.Services
 {
     public class UserService : IUserService
     {
@@ -33,7 +33,7 @@ namespace CampaignManager.Services
             return user;
         }
 
-        public async Task<UserResponse> GetUser(string email,string password)
+        public async Task<UserResponse> GetUser(string email, string password)
         {
             var response = await CampaignManagerContext.Users.FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
             if (response != null)

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CampaignManager.Services.Models
+﻿namespace CampaignManager.Services.Models
 {
     public class UserResponse
     {
@@ -12,6 +6,8 @@ namespace CampaignManager.Services.Models
         public string Email { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
-        public List<Guid> Campaigns { get; set; }
+        public List<Guid>? Campaigns { get; set; }
+        public string Persona { get; set; }
+        public List<ContentAccess>? ContentAccess { get; set; } // later will change to DB ref
     }
 }

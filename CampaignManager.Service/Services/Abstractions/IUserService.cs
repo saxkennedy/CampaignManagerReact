@@ -1,7 +1,7 @@
 ﻿using CampaignManager.Services.Models;
 using Data.Models;
 
-namespace CampaignManager.Services.Abstractions
+namespace CampaignManager.Services.Services.Abstractions
 {
     public interface IUserService
     {
