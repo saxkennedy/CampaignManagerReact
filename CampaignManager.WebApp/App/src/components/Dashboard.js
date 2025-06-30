@@ -6,7 +6,7 @@ export const Dashboard = (props) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     
-    const backgroundUrl = `url("https://lh3.googleusercontent.com/d/1K3a6x-eXhCUV4Bu8t5COS_z1KjRhOP5K")`;
+    //const backgroundUrl = `url("https://lh3.googleusercontent.com/d/1K3a6x-eXhCUV4Bu8t5COS_z1KjRhOP5K")`;
 
     
     if (props.fetching) return <div>Loading...</div>;
@@ -16,13 +16,14 @@ export const Dashboard = (props) => {
     return (
         <>           
             <div style={{
-            backgroundImage: backgroundUrl, 
-            backgroundSize: 'cover', 
-            height: '100vh', 
-            width: '100vw'
+                //backgroundImage: backgroundUrl, 
+                backgroundColor: 'palegoldenrod',
+                backgroundSize: 'cover', 
+                height: '100vh', 
+                width: '100vw'
             }}>
                 <Typography variant="h1" component="h1" gutterBottom>
-                    Campaign Dashboard
+                    Test Site
                 </Typography>
             </div>
         </>
