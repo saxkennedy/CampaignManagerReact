@@ -19,6 +19,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="App\package.json" />
+    <Content Include="App\staticwebapp.config.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CampaignManager.Data\CampaignManager.Data.csproj" />
