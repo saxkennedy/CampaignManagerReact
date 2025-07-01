@@ -1,10 +1,4 @@
-﻿
-const initialState = {
-    status: 'uninitialized',
-    user: null
-}
-
-const userReducer = (state = initialState, action) => {
+﻿const userReducer = (state = {} , action) => {
     switch (action.type) {
         case 'CREATE_USER':
             return {
@@ -20,3 +14,5 @@ const userReducer = (state = initialState, action) => {
             return state;
     }
 };
+
+export default userReducer;
