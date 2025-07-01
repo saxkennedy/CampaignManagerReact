@@ -1,17 +1,16 @@
 ﻿import React from 'react';
 import { List, ListItem, ListItemText, Collapse } from '@mui/material';
-import PropTypes from 'prop-types';
-import GeneralInformationFrame from './GeneralInformationFrame'; 
+import GeneralInformationFrame from '../utilities/GeneralInformationFrame'; 
 
-export const CampaignSideNav = ({ categories }) => {
-    const [openCategories, setOpenCategories] = React.useState({});
+export const CampaignSideNav = () => {
+    const [campaignDetails, setCampaignDetails] = React.useState({});
     const expandLessIcon = <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=keyboard_arrow_up" />
     const expandMoreIcon = <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=keyboard_arrow_down" />
 
-    const handleClick = (category) => {
-        setOpenCategories((prev) => ({
+    const handleClick = (item) => {
+        setCampaignDetails((prev) => ({
             ...prev,
-            [category]: !prev[category],
+            [item]: !prev[item],
         }));
     };
 
@@ -21,18 +20,18 @@ export const CampaignSideNav = ({ categories }) => {
         );
     };
 
-    const renderChildren = (children) => {
+    const renderChildren = (children, level = 1) => {
         return children.map((child) => (
-            <div key={child.name}>
+            <div key={child.name} style={{ paddingLeft: level * 16 }}>
                 <ListItem button onClick={() => handleClick(child.name)}>
                     <ListItemText primary={child.name} />
-                    {openCategories[child.name] ? "^" : ">"}
+                    {campaignDetails[child.name] ? "^" : ">"}
                 </ListItem>
-                <Collapse in={openCategories[child.name]} timeout="auto" unmountOnExit>
+                <Collapse in={campaignDetails[child.name]} timeout="auto" unmountOnExit>
                     <List component="div" disablePadding>
-                        {child.children && child.children.length > 0 ? renderChildren(child.children) : null}
+                        {child.children && child.children.length > 0 ? renderChildren(child.children, level + 1) : null}
                         {child.route && (
-                            <ListItem button onClick={() => handleNavigate(child.route)}>
+                            <ListItem button onClick={() => handleNavigate(child.route)} style={{ paddingLeft: (level + 1) * 16 }}>
                                 <ListItemText primary={child.name} />
                             </ListItem>
                         )}
@@ -43,16 +42,25 @@ export const CampaignSideNav = ({ categories }) => {
     };
 
     return (
-        <List component="nav">
-            {categories.map((category) => (
-                <div key={category.name}>
-                    <ListItem button onClick={() => handleClick(category.name)}>
-                        <ListItemText primary={category.name} />
-                        {openCategories[category.name] ? expandLessIcon : expandMoreIcon }
+        <List
+            component="nav"
+            sx={{
+                width: 'fit-content',
+                minWidth: 240,
+                maxWidth: 400,
+                bgcolor: 'background.paper',
+                boxSizing: 'border-box',
+            }}
+        >
+            {realmsBetwixt.map((item) => (
+                <div key={item.name}>
+                    <ListItem button onClick={() => handleClick(item.name)}>
+                        <ListItemText primary={item.name} />
+                        {campaignDetails[item.name] ? "^" : ">" }
                     </ListItem>
-                    <Collapse in={openCategories[category.name]} timeout="auto" unmountOnExit>
+                    <Collapse in={campaignDetails[item.name]} timeout="auto" unmountOnExit>
                         <List component="div" disablePadding>
-                            {renderChildren(category.children)}
+                            {renderChildren(item.children)}
                         </List>
                     </Collapse>
                 </div>
@@ -61,19 +69,61 @@ export const CampaignSideNav = ({ categories }) => {
     );
 };
 
-CampaignSideNav.propTypes = {
-    categories: PropTypes.arrayOf(
-        PropTypes.shape({
-            name: PropTypes.string.isRequired,
-            children: PropTypes.arrayOf(
-                PropTypes.shape({
-                    name: PropTypes.string.isRequired,
-                    route: PropTypes.string,
-                    children: PropTypes.array,
-                })
-            ).isRequired,
-        })
-    ).isRequired,
-};
-
 export default CampaignSideNav;
+
+const realmsBetwixt = [
+    {
+        name: 'Campaign Overview',
+        children: [
+            { name: 'Character Creation & Guidelines', route: '', access: 'Public' },
+            { name: 'Campaign Details', route: 'https://docs.google.com/document/d/15vBIP0EC3L5J7ssOxenkUS4T58DI8pEH1X-G_487tn0/edit?usp=sharing', access: 'Public' },
+            { name: 'DM Only - Campaign Details', route: '', access: 'Private' },
+        ],
+    },
+    {
+        name: 'Alternate Magic Systems',
+        children: [
+            {
+                name: 'Allomancy',
+                children: [
+                    { name: 'Allomancy Overview', route: '', access: 'Public' },
+                    { name: 'DM Only - Allomancy Snap Chart', route: '', access: 'Private' },
+                    { name: 'Coinshot', route: '', access: 'Public' },
+                    { name: 'Mistborn', route: '', access: 'Public' }
+                ]
+            },
+            {
+                name: 'Stormlight',
+                children: [
+                    { name: 'Stormlight Overview', route: '', access: 'Public' },
+                    { name: 'Sphere Conversion', route: '', access: 'Public' },
+                    { name: 'Windrunner', route: '', access: 'Public' },
+                    { name: 'Edgedancer', route: '', access: 'Private' }
+                ]
+            }
+        ],
+    },
+    {
+        name: 'Notable Non-Player Characters',
+        children: [
+            { name: 'NPCs', route: '', access: 'Public' },
+            { name: 'DM Only - NPCs', route: '', access: 'Private' },
+        ],
+    },
+    {
+        name: 'Maps',
+        children: [
+            { name: 'World Map', route: '', access: 'Public' },
+            { name: 'DM Only - World Map', route: '', access: 'Private' }
+        ],
+        name: 'Chapter Summaries & Encounters',
+        children: [
+            { name: 'Chapter 1 Summary', route: '', access: 'Public' },
+            { name: 'DM Only - Chapter 1 Summary', route: '', access: 'Private' },
+            { name: 'Chapter 2 Summary', route: '', access: 'Public' },
+            { name: 'DM Only - Chapter 2 Summary', route: '', access: 'Private' },
+            { name: 'Chapter 3 Summary', route: '', access: 'Public' },
+            { name: 'DM Only - Chapter 3 Summary', route: '', access: 'Private' }
+        ],
+    }
+];

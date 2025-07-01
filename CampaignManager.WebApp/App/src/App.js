@@ -15,12 +15,12 @@ export class App extends Component {
             user: null,
             fetching: true,
             isNewUser: false,
-            selectedCampaign: null
+            openCampaignNav: false
         }
     }
 
-    setCampaignDetails = (campaign) => {
-        this.setState({ selectedCampaign: campaign });
+    setOpenCampaignNav = (open) => {
+        this.setState({ openCampaignNav: open });
     }
 
 
@@ -36,27 +36,56 @@ export class App extends Component {
         return (<Register setUser={this.setUser} />)
     }
 
+
     render() {
         return (
-            <div>                
+            <div>
                 <Router>
-                    <div style={{ height: "4vh" }}>
-                        {this.state.user && <Navigation user={this.state.user} setUser={this.setUser} setCampaignDetails={this.setCampaignDetails} />}
+                    <div>
+                        {this.state.user && <Navigation user={this.state.user} setUser={this.setUser} setOpenCampaignNav={this.setOpenCampaignNav} />}
                     </div>
-                    <div style={{ height: "96vh", width:"100vw" }}>
-                        <Routes>                        
-                            <Route path="/login" element={<Login user={this.state.user} setUser={this.setUser} />} />
-                            {/* <Route path="/register" element={<Register setUser={this.setUser} />} />*/}
-                            <Route path="/dashboard" element={this.state.user ? <Dashboard user={this.state.user} /> : <Navigate to="/login" />} />
-                            <Route path="/" element={<Navigate to="/dashboard" />} />
-                            <Route path="/sphereConverter" element={<SphereConverter user={this.state.user} />} />"
-                        </Routes>     
+                    <div style={{ position: "relative", top: "4vh" } }>
+                        {
+                            this.state.user && this.state.openCampaignNav &&
+                            <CampaignSideNav user={this.state.user} />
+                        }
                     </div>
+                    <Routes>
+                        <Route
+                            path="/login"
+                            element={
+                                <div style={{ height: "100vh", width: "100vw", position: "relative", top: "0" }}>
+                                    <Login user={this.state.user} setUser={this.setUser} />
+                                </div>
+                            }
+                        />
+                        {/* <Route path="/register" element={<Register setUser={this.setUser} />} />*/}
+                        <Route
+                            path="/dashboard"
+                            element={
+                                this.state.user ? (
+                                    <div style={{ height: "96vh", width: "100vw", position: "relative", top: "4vh" }}>
+                                        <Dashboard user={this.state.user} />
+                                    </div>
+                                ) : (
+                                    <Navigate to="/login" />
+                                )
+                            }
+                        />
+                        <Route
+                            path="/"
+                            element={<Navigate to="/dashboard" />}
+                        />
+                        <Route
+                            path="/sphereConverter"
+                            element={
+                                <div style={{ height: "96vh", width: "100vw", position: "relative", top: "4vh" }}>
+                                    <SphereConverter user={this.state.user} />
+                                </div>
+                            }
+                        />
+                    </Routes>
                 </Router>
-                {
-                    this.state.user && this.state.selectedCampaign &&
-                    <CampaignSideNav user={this.state.user} campaign={this.state.selectedCampaign} />
-                }
             </div>
         );
     }
