@@ -1,8 +1,4 @@
-﻿using System;
-using Data.Models;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.SpaServices;
-using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
+﻿using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using CampaignManager.Services.Services.Abstractions;
 using CampaignManager.Services.Services;
 
