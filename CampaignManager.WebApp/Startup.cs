@@ -40,7 +40,6 @@ namespace CampaignManager.WebApp
             //}
             services.AddRazorPages();
             services.AddMemoryCache();
-            AddLocalServices(services);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -74,13 +73,6 @@ namespace CampaignManager.WebApp
                     spa.UseReactDevelopmentServer(npmScript: "start");
                 }
             });
-        }
-
-        private void AddLocalServices(IServiceCollection services)
-        {
-            //services.AddScoped<IUserService, UserService>();
-            services.AddScoped<ITemporaryLoginService, TemporaryLoginService>();
-        
         }
     }
 }
