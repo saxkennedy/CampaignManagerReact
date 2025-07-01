@@ -17,13 +17,6 @@ namespace CampaignManager.WebApp.Controllers
             //UserService = userService;
             TemporaryLoginService = temporaryLoginService;
         }
-        //[HttpPost]
-        //[Route("createUser")]
-        //public async Task<UserResponse> CreateUser( [FromBody] NewUserRequest user)
-        //{
-        //    UserResponse response = await  UserService.CreateUser(user);
-        //    return response;
-        //}
         [HttpGet("getUser/{email}/{password}")]
         public async Task<UserResponse> GetUser(string email, string password)
         {
