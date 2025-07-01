@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CampaignManager.WebApp.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("backendApi/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
     {
