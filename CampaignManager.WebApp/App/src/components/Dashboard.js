@@ -22,7 +22,7 @@ export const Dashboard = (props) => {
                 height: '100vh', 
                 width: '100vw'
             }}>
-                <Typography variant="h1" component="h1" gutterBottom>
+                <Typography variant="h1" component="h1" gutterBottom sx={{pt:"2vh"} }>
                     Ender's Campaign Manager (Alpha)
                 </Typography>
             </div>
