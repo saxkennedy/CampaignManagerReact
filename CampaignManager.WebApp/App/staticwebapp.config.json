@@ -1,0 +1,26 @@
+﻿{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": [ "/api/*" ]
+  },
+  "routes": [
+    {
+      "route": "/api/login",
+      "allowedRoles": [ "anonymous" ],
+      "methods": [ "POST" ]
+    }
+  ],
+  "responseOverrides": {
+    "401": {
+      "rewrite": "/unauthorized.html"
+    },
+    "404": {
+      "rewrite": "/404.html"
+    }
+  },
+  "globalHeaders": {
+    "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff",
+    "X-XSS-Protection": "1; mode=block"
+  }
+}
