@@ -1,6 +1,5 @@
 using CampaignManager.Services.Models;
 using CampaignManager.Services.Services.Abstractions;
-using Data.Models;
 using Microsoft.AspNetCore.Mvc;
 
 
