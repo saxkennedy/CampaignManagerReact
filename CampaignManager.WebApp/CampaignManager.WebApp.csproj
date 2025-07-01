@@ -18,7 +18,6 @@
   	<None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App\package-lock.json" />
     <Content Include="App\package.json" />
   </ItemGroup>
   <ItemGroup>
