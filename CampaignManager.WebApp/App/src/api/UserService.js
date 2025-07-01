@@ -23,6 +23,7 @@ class UserService {
         const result = await response.json();
         if (response.ok) {
             console.log("Success:", result.message);
+            return result;
         }
         else {
             console.error("Error:", result.message);
