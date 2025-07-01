@@ -31,7 +31,6 @@ export const Login = (props) => {
     return (
         <div style={{
             backgroundImage: backgroundUrl,
-            backgroundColor: 'palegoldenrod',
             backgroundSize: 'cover',
             height: '100vh',
             width: '100vw'
@@ -40,7 +39,7 @@ export const Login = (props) => {
                 minHeight: '100%', minWidth: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 0 }}>
               <Box
                 sx={{
-                  background: '#fff',
+                  background: '#FCF5E5',
                   borderRadius: 4,
                   boxShadow: 3,
                   p: { xs: 3, sm: 6 },
@@ -50,9 +49,16 @@ export const Login = (props) => {
                   flexDirection: 'column',
                   alignItems: 'center'
                 }}
-              >
-                <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 700, color: '#1976d2', mb: 2 }}>
-                  Campaign Manager
+                >
+                    <Typography variant="h3" component="h1" gutterBottom sx={{
+                        fontWeight: 700,
+                        color: '#1976d2',
+                        mb: 2,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        textAlign: 'center'
+                    }}>
+                  Ender's Campaign Manager (ALPHA)
                 </Typography>
                 <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3, color: 'text.secondary' }}>
                   Login to your account

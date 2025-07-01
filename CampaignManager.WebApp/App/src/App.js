@@ -39,7 +39,7 @@ export class App extends Component {
 
     render() {
         return (
-            <div>
+            <div style={{ backgroundColor:"#FCF5E5"} }>
                 <Router>
                     <div>
                         {this.state.user && <Navigation user={this.state.user} setUser={this.setUser} setOpenCampaignNav={this.setOpenCampaignNav} />}
