@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CampaignManager.Data", "Cam
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "api", "api\api.csproj", "{C7FFB446-9CFE-4441-B359-DB0644E455F3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "api", "api\api.csproj", "{1C6C011A-F783-4665-9E83-4EC35A20B2DA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +35,10 @@ Global
 		{21E425B6-DA91-0A0A-EFB4-842F3172327E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21E425B6-DA91-0A0A-EFB4-842F3172327E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21E425B6-DA91-0A0A-EFB4-842F3172327E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C7FFB446-9CFE-4441-B359-DB0644E455F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C7FFB446-9CFE-4441-B359-DB0644E455F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C7FFB446-9CFE-4441-B359-DB0644E455F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C7FFB446-9CFE-4441-B359-DB0644E455F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C6C011A-F783-4665-9E83-4EC35A20B2DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C6C011A-F783-4665-9E83-4EC35A20B2DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C6C011A-F783-4665-9E83-4EC35A20B2DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C6C011A-F783-4665-9E83-4EC35A20B2DA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
