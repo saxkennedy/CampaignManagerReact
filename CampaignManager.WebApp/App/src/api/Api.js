@@ -1,4 +1,4 @@
-class BackendApi {
+class Api {
     async headers() {
         return {
             'Content-Type': 'application/json'
@@ -31,4 +31,4 @@ class BackendApi {
     }
 }
 
-export default new BackendApi();
+export default new Api();
