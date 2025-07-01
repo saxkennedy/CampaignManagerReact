@@ -7,13 +7,15 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using api.Models;
 
 namespace api.Authentication
 {
     public static class LoginFunction
     {
         [FunctionName("Login")]
-        public static async Task<IActionResult> Run(
+        public static async Task<UserResponse> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "login")] HttpRequest req,
             ILogger log)
         {
@@ -21,20 +23,50 @@ namespace api.Authentication
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var loginData = JsonConvert.DeserializeObject<LoginRequest>(requestBody);
+            var email = loginData.Email;
+            var password = loginData.Password;
 
-            if (string.IsNullOrWhiteSpace(loginData?.Email) || string.IsNullOrWhiteSpace(loginData?.Password))
+            if (email == "player@endersgame.com" && password == "pleasedontabuse")
             {
-                return new BadRequestObjectResult("Email and password are required.");
+                var playerContentAccess = new List<ContentAccess>()
+                    //make a new list of ContentAccess items
+                    {
+                        new ContentAccess() { Name = "RealmsBetwixt", DisplayName = "Realms Betwixt Campaign Access", HasAccess = true },
+                        new ContentAccess() { Name = "Public", DisplayName = "Public Campaign Details", HasAccess = true },
+                        new ContentAccess() { Name = "Private", DisplayName = "Private Campaign Details", HasAccess = false }
+                    };
+                return new UserResponse()
+                {
+                    Id = Guid.Empty,
+                    Email = email,
+                    FirstName = "Guest",
+                    LastName = "McGuest",
+                    Persona = "Player",
+                    ContentAccess = playerContentAccess
+                };
             }
-
-            // ⚠️ Simplified validation for demonstration only
-            if (loginData.Email == "admin@endersgame.com" && loginData.Password == "vampjuice123")
+            if (email == "admin@endersgame.com" && password == "vampjuice123")
             {
-                return new OkObjectResult(new { message = "Login successful!" });
+                var adminContentAccess = new List<ContentAccess>()
+                    //make a new list of ContentAccess items
+                    {
+                        new ContentAccess() { Name = "RealmsBetwixt", DisplayName = "Realms Betwixt Campaign Access", HasAccess = true },
+                        new ContentAccess() { Name = "Public", DisplayName = "Public Campaign Details", HasAccess = true },
+                        new ContentAccess() { Name = "Private", DisplayName = "Private Campaign Details", HasAccess = true }
+                    };
+                return new UserResponse()
+                {
+                    Id = Guid.Empty,
+                    Email = email,
+                    FirstName = "Ender",
+                    LastName = "Wiggin",
+                    Persona = "Admin",
+                    ContentAccess = adminContentAccess
+                };
             }
             else
             {
-                return new UnauthorizedObjectResult(new { message = "Invalid credentials." });
+                return null;
             }
         }
 
