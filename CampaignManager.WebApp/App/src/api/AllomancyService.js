@@ -1,13 +1,13 @@
-﻿import Api from './Api';
+﻿import BackendApi from './BackendApi';
 class AllomancyService {
     callbacks = [];
 
     async GetSnapChart() {
-        return Api.fetch(`/api/allomancy/getSnapChart/${email}/${password}`);
+        return BackendApi.fetch(`/backendApi/allomancy/getSnapChart/${email}/${password}`);
     }
 
     async GetSnap(favoredClass, favoredAbility) {
-        return Api.fetch(`/api/allomancy/getSnap/${favoredClass}/${favoredAbility}`);
+        return BackendApi.fetch(`/backendApi/allomancy/getSnap/${favoredClass}/${favoredAbility}`);
     }
 }
 
