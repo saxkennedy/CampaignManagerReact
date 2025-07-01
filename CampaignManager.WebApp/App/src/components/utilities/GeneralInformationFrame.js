@@ -3,17 +3,12 @@ import { Box } from '@mui/material';
 import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
 
 export const GeneralInformationFrame = ({ url }) => {
     const [content, setContent] = useState('');
     const navigate = useNavigate();
-    const { user } = useAuth();
 
     useEffect(() => {
-        if (!user) {
-            navigate('/login');
-        }
         fetch(url)
             .then(response => response.text())
             .then(data => setContent(data))
