@@ -1,12 +1,6 @@
 ﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Box, Typography, Link as MuiLink } from '@mui/material';
 
-/**
- * Props:
- *  - url (string, required): Google Docs/Sheets/Slides/Drive link
- *  - title (string, optional): heading above the document
- *  - topOffset (number, optional): space to subtract for fixed bars
- */
 const ContentViewer = ({ url, title = 'Document', topOffset = 64, style }) => {
     const [html, setHtml] = useState(null);
     const [error, setError] = useState(null);
