@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using CampaignManager.Services.Services;                // UserService (impl)
 using CampaignManager.Services.Services.Abstractions;  // IUserService (interface)
 using Data.Models;                                     // CampaignManagerContext
@@ -18,6 +18,8 @@ var host = new HostBuilder()
 
         // Register your service so LoginFunction can get IUserService in its ctor
         services.AddScoped<IUserService, UserService>();
+        services.AddHttpClient(); // ✅ enables IHttpClientFactory
+        // services.AddHttpClient("google", c => { c.Timeout = TimeSpan.FromSeconds(15); });
     })
     .Build();
 

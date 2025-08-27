@@ -1,74 +1,161 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useRef, useState, useMemo } from 'react'; // ⬅️ add useMemo
 import { useNavigate } from 'react-router-dom';
-import { AppBar, Toolbar, Collapse, Button, List, ListItem } from '@mui/material';
-
+import {
+    AppBar,
+    Toolbar,
+    Button,
+    Collapse,
+    ClickAwayListener,
+    Box,
+} from '@mui/material';
 
 export const Navigation = (props) => {
     const navigate = useNavigate();
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [drawerContent, setDrawerContent] = useState([]);
+    const [drawerKey, setDrawerKey] = useState(null); // 'campaignMaterials' | 'playerTools' | null
+    const appBarRef = useRef(null);
 
-    const handleNavigate = (route) => {
-        setDrawerOpen(false);
-        props.setOpenCampaignNav(false);
-        var navRoute = "/" + route;
-        if (route === "login") {
-            props.setUser(null);
-        }
-        if (route === "campaignMaterials") {
-            setDrawerContent(["Realms Betwixt", "Coming Soon", "Coming Soon"]);
-            setDrawerOpen(!drawerOpen);
-        }
-        if (route === "playerTools") {
-            setDrawerContent(["Sphere Converter", "Coming Soon", "Coming Soon"]);
-            setDrawerOpen(!drawerOpen);
-        }
-        else if (route === "realmsbetwixt") {
-            props.setOpenCampaignNav(true);
-        }
-        else if (route === "sphereConverter") {
-            props.setOpenTool("sphereConverter");
-        }
-        navigate(navRoute);
+    const { campaignLabels, campaignRouteByLabel } = useMemo(() => {
+        const cps = props.user?.CampaignPersonas ?? [];
+        const sorted = [...cps].sort(
+            (a, b) =>
+                (a.CampaignName || '').localeCompare(b.CampaignName || '')
+        );
+        const labels = sorted.map(cp => cp.CampaignName);
+        const map = new Map(sorted.map(cp => {
+            const label = cp.CampaignName;
+            return [label, `/campaigns/${cp.CampaignId}`]; // route by CampaignId
+        }));
+        return { campaignLabels: labels, campaignRouteByLabel: map };
+    }, [props.user]);
+
+    const openDrawer = (key, content) => {
+        setDrawerKey(key);
+        setDrawerContent(content);
+        setDrawerOpen(true);
     };
 
+    const toggleDrawer = (key, content) => {
+        if (drawerOpen && drawerKey === key) {
+            setDrawerOpen(false);
+        } else {
+            openDrawer(key, content);
+        }
+    };
+
+    const handleTopNavClick = (route) => {
+        if (route === 'login') {
+            props.setUser?.(null);
+            setDrawerOpen(false);
+            navigate('/login');
+            return;
+        }
+        if (route === 'dashboard') {
+            props.setOpenCampaignNav?.(false);
+            setDrawerOpen(false);
+            navigate('/dashboard');
+            return;
+        }
+        if (route === 'campaignMaterials') {
+            toggleDrawer('campaignMaterials', campaignLabels);
+            return;
+        }
+        if (route === 'playerTools') {
+            props.setOpenCampaignNav?.(false);
+            toggleDrawer('playerTools', ['Sphere Converter', 'Coming Soon', 'Coming Soon']);
+            return;
+        }
+    };
+
+    const handleDrawerOptionClick = (option) => {
+        setDrawerOpen(false);
+        if (drawerKey === 'campaignMaterials') {
+            const route = campaignRouteByLabel.get(option);
+            if (route) {
+                props.setOpenCampaignNav?.(true);
+                navigate(route);
+            }
+            return;
+        }
+        const normalized = option.toLowerCase().replace(/\s+/g, '');
+        navigate('/' + normalized);
+    };
+
+    const onClickAway = (event) => {
+        if (!appBarRef.current) return;
+        if (appBarRef.current.contains(event.target)) return;
+        setDrawerOpen(false);
+    };
 
     return (
-        <>
-            <AppBar position="fixed">
-                <Toolbar>
-                    <Button color="" onClick={() => handleNavigate("dashboard")} sx={{ flexGrow: 1 }}>
+        <ClickAwayListener onClickAway={onClickAway}>
+            <AppBar position="fixed" ref={appBarRef} sx={{ background: '#1976d2' }}>
+                <Toolbar sx={{ gap: 1 }}>
+                    <Button
+                        onClick={() => handleTopNavClick('dashboard')}
+                        sx={{ flexGrow: 1, color: 'white', fontWeight: 600, textTransform: 'none' }}
+                    >
                         Home
                     </Button>
-                    <Button color="inherit" onClick={() => handleNavigate("campaignMaterials")} sx={{ flexGrow: 1 }}>
+                    <Button
+                        onClick={() => handleTopNavClick('campaignMaterials')}
+                        sx={{ flexGrow: 1, color: 'white', fontWeight: 600, textTransform: 'none' }}
+                    >
                         Campaign Material
                     </Button>
-                    <Button color="inherit" onClick={() => handleNavigate("playerTools")} sx={{ flexGrow: 1 }}>
+                    <Button
+                        onClick={() => handleTopNavClick('playerTools')}
+                        sx={{ flexGrow: 1, color: 'white', fontWeight: 600, textTransform: 'none' }}
+                    >
                         Player Tools
                     </Button>
-                    <Button color="inherit" onClick={() => handleNavigate("login")} sx={{ flexGrow: 1 }}>
+                    <Button
+                        onClick={() => handleTopNavClick('login')}
+                        sx={{ flexGrow: 1, color: 'white', fontWeight: 600, textTransform: 'none' }}
+                    >
                         Logout
                     </Button>
                 </Toolbar>
-                <Collapse in={drawerOpen}>
-                    <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
+
+                <Collapse in={drawerOpen} unmountOnExit>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            flexWrap: 'wrap',
+                            p: 2,
+                            backgroundColor: '#1565c0', // subtle contrast under the AppBar
+                            borderTop: '1px solid rgba(255,255,255,0.2)',
+                        }}
+                    >
                         {drawerContent.map((option, index) => (
-                            <Button 
-                                key={index} 
-                                variant="contained" 
-                                onClick={() => handleNavigate(option.toLowerCase().replace(" ", ""))} 
-                                sx={{ margin: '8px' }}
+                            <Button
+                                key={index}
+                                variant="outlined"
+                                onClick={() => handleDrawerOptionClick(option)}
+                                sx={{
+                                    m: 1,
+                                    color: 'white',
+                                    borderColor: 'white',
+                                    fontWeight: 600,
+                                    textTransform: 'none',
+                                    borderRadius: 2,
+                                    px: 2.5,
+                                    '&:hover': {
+                                        backgroundColor: 'rgba(255,255,255,0.15)',
+                                        borderColor: 'white',
+                                    },
+                                }}
                             >
                                 {option}
                             </Button>
                         ))}
-                    </div>
-                </Collapse>                  
+                    </Box>
+                </Collapse>
             </AppBar>
-            
-        </>
+        </ClickAwayListener>
     );
 };
 
 export default Navigation;
-
