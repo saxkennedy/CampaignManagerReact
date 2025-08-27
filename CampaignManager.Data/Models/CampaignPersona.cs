@@ -17,5 +17,5 @@ public partial class CampaignPersona
 
     public virtual Campaign Campaign { get; set; }
 
-    public virtual ICollection<User> Users { get; set; } = new List<User>();
+    public virtual ICollection<UserCampaignPersona> UserCampaignPersonas { get; set; } = new List<UserCampaignPersona>();
 }

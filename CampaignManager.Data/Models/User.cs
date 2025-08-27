@@ -25,5 +25,5 @@ public partial class User
 
     public virtual SitePersona Persona { get; set; }
 
-    public virtual ICollection<CampaignPersona> CampaignPersonas { get; set; } = new List<CampaignPersona>();
+    public virtual ICollection<UserCampaignPersona> UserCampaignPersonas { get; set; } = new List<UserCampaignPersona>();
 }

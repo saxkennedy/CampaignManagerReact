@@ -15,7 +15,7 @@ export const Login = (props) => {
       try {
               const res = await UserService.GetUser(email, password)
               if (res) {
-                  props.setUser(res.id);
+                  props.setUser(res.Id);
                   navigate('/dashboard');
               }
               else {
