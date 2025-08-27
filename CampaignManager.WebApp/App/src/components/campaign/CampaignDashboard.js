@@ -108,15 +108,15 @@ const realmsBetwixt = [
     {
         name: 'Campaign Overview',
         children: [
-            { name: 'Character Creation & Guidelines', route: '', access: 'Public' },
+            { name: 'Character Creation & Campaign Guidelines', route: 'https://docs.google.com/document/d/1gm70Hj-4UEgEpOwpvgKn40bJxXqZ0YmgZRn6aaXwmqg/edit?usp=sharing', access: 'Public' },
             {
                 name: 'Campaign Details',
-                route:
-                    'https://docs.google.com/document/d/15vBIP0EC3L5J7ssOxenkUS4T58DI8pEH1X-G_487tn0/edit?usp=sharing',
-                access: 'Public',
-            },
-            { name: 'DM Only - Campaign Details', route: '', access: 'Private' },
-        ],
+                children: [
+                    { name: 'Campaign Preface', route: 'https://docs.google.com/document/d/1sqnSeDC18f9H6f2LjCgnFOjNozdEvzgTzOC2l7lYwbY/edit?usp=sharing', access: 'Public' },
+                    { name: 'The State of the Material Plane', route: 'https://docs.google.com/document/d/15vBIP0EC3L5J7ssOxenkUS4T58DI8pEH1X-G_487tn0/edit?usp=sharing', access: 'Public' }
+                ]
+            }
+        ]
     },
     {
         name: 'Alternate Magic Systems',
@@ -124,19 +124,32 @@ const realmsBetwixt = [
             {
                 name: 'Allomancy',
                 children: [
-                    { name: 'Allomancy Overview', route: '', access: 'Public' },
-                    { name: 'DM Only - Allomancy Snap Chart', route: '', access: 'Private' },
-                    { name: 'Coinshot', route: '', access: 'Public' },
-                    { name: 'Mistborn', route: '', access: 'Public' },
+                    { name: 'Allomancy Overview', route: 'https://docs.google.com/document/d/1-m4_tvKHyg6r4C8vftxiMId9FRbTnLlNs3R4ykiSmp8/edit?usp=sharing', access: 'Public' },
+                    { name: 'Allomantic Metal Pricing Guide', route: 'https://docs.google.com/spreadsheets/d/10ksMqrjvnhhaDo1OhRJCIJWCBM8b25p5/edit?usp=sharing&ouid=115506903053452023206&rtpof=true&sd=true', access: 'Public'},
+                    //{ name: 'DM Only - Allomancy Snap Chart', route: '', access: 'Private' },
+                    {
+                        name: 'Misting Prestige Classes',
+                        children: [
+                            { name: 'Coinshot', route: 'https://docs.google.com/document/d/13ymEQYQKDi55Kd9UnQqvALLHvbR9Roqob8ZOm9G7vao/edit?usp=sharing', access: 'Public' },
+                            { name: 'Tineye', route: 'https://docs.google.com/document/d/1eKtX576z_BiCGP2J60spspoRkz4GHpPKRiIzMtmBZ1g/edit?usp=sharing', access: 'Public' },
+                            { name: 'PewterArm/Thug', route: 'https://docs.google.com/document/d/1yO1MXgJpQ0tJ43vAJZ_OVqWqv1XfRZpA0Mz7HsRiWeQ/edit?usp=sharing', access: 'Public' }
+                        ]
+                    }                    
                 ],
             },
             {
                 name: 'Stormlight',
-                children: [
-                    { name: 'Stormlight Overview', route: '', access: 'Public' },
-                    { name: 'Sphere Conversion', route: '', access: 'Public' },
-                    { name: 'Windrunner', route: '', access: 'Public' },
-                    { name: 'Edgedancer', route: '', access: 'Private' },
+                children: [                    
+                    { name: 'Sphere Conversion', route: 'https://docs.google.com/document/d/1rOgT16iMQ4FES8Y2QObOcFX9-P6Vd9e24gWJ_QJ4mY4/edit?usp=sharing', access: 'Public' },
+                    { name: 'Radiant Prestige Class Core Features', route: 'https://docs.google.com/document/d/1i5at77KIEMQgmkqUXa4s6v1r0lbDmgT4mWdYYbjjUio/edit?usp=sharing', access: 'Public' },
+                    {
+                        name: 'Radiant Prestige Classes',
+                        children: [
+                            { name: 'Windrunner', route: 'https://docs.google.com/document/d/1-l97owhRf_9e6rCD4_tUWXIUglX6T1SKWon09oXhL68/edit?usp=sharing', access: 'Public' },
+                            { name: 'Edgedancer', route: 'https://docs.google.com/document/d/1p1XwqE8XSE6_bXXT5Clb_1iQG4O5j1CaZeqBGgH_dd4/edit?usp=sharing', access: 'Public' }
+                        ]
+                    }
+                    
                 ],
             },
         ],
@@ -144,7 +157,7 @@ const realmsBetwixt = [
     {
         name: 'Notable Non-Player Characters',
         children: [
-            { name: 'NPCs', route: '', access: 'Public' },
+            { name: 'NPCs', route: 'https://docs.google.com/spreadsheets/d/1ME0RACvCqrratCMMVSmo2Lh_HR39MV5oEWtx816RFtg/edit?usp=sharing', access: 'Public' },
             { name: 'DM Only - NPCs', route: '', access: 'Private' },
         ],
     },
