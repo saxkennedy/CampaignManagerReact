@@ -32,11 +32,11 @@ const ContentViewer = ({ url, title = 'Document', topOffset = 64, style }) => {
                 // ⬇️ Make the exported HTML background transparent and center content WITHOUT limiting width
                 const inject = `
                     <style>
-                      html, body { background: transparent !important; margin: 0; justify-items: center; }
+                      html {justify-items: center;  }
                       /* Center main blocks but allow full width of the iframe panel */
-                      body > * { margin-left: auto; margin-right: auto; max-width: 100%; justify-items: center; }
+                      body > * { margin-left: auto; margin-right: auto; max-width: 100%; }
                       /* Optional reading padding */
-                      body { padding: 12px; }
+                      body { padding: 12px;background: transparent !important; margin: 0; }
                     </style>`.trim();
 
                 if (/<head[^>]*>/i.test(text)) {
