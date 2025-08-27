@@ -24,4 +24,6 @@ public partial class User
     public string Password { get; set; }
 
     public virtual SitePersona Persona { get; set; }
+
+    public virtual ICollection<CampaignPersona> CampaignPersonas { get; set; } = new List<CampaignPersona>();
 }

@@ -16,6 +16,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "api", "api\api.csproj", "{1C6C011A-F783-4665-9E83-4EC35A20B2DA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{21E425B6-DA91-0A0A-EFB4-842F3172327E} = {21E425B6-DA91-0A0A-EFB4-842F3172327E}
+		{A02472AA-C6CE-97AC-B8B7-5DAE28B3A90F} = {A02472AA-C6CE-97AC-B8B7-5DAE28B3A90F}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
