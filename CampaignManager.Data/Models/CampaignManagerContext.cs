@@ -21,6 +21,8 @@ public partial class CampaignManagerContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+    public virtual DbSet<UserCampaignPersona> UserCampaignPersonas { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Campaign>(entity =>
@@ -79,23 +81,21 @@ public partial class CampaignManagerContext : DbContext
                 .HasForeignKey(d => d.PersonaId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Users__PersonaId__4222D4EF");
+        });
 
-            entity.HasMany(d => d.CampaignPersonas).WithMany(p => p.Users)
-                .UsingEntity<Dictionary<string, object>>(
-                    "UserCampaignPersona",
-                    r => r.HasOne<CampaignPersona>().WithMany()
-                        .HasForeignKey("CampaignPersonaId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__UserCampa__Campa__03F0984C"),
-                    l => l.HasOne<User>().WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__UserCampa__UserI__02FC7413"),
-                    j =>
-                    {
-                        j.HasKey("UserId", "CampaignPersonaId");
-                        j.ToTable("UserCampaignPersonas");
-                    });
+        modelBuilder.Entity<UserCampaignPersona>(entity =>
+        {
+            entity.HasKey(e => new { e.UserId, e.CampaignPersonaId });
+
+            entity.HasOne(d => d.CampaignPersona).WithMany(p => p.UserCampaignPersonas)
+                .HasForeignKey(d => d.CampaignPersonaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__UserCampa__Campa__03F0984C");
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserCampaignPersonas)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__UserCampa__UserI__02FC7413");
         });
 
         OnModelCreatingPartial(modelBuilder);
