@@ -35,7 +35,8 @@ namespace CampaignManager.Services.Services
 
         public async Task<UserResponse> GetUser(string email, string password)
         {
-            var response = await CampaignManagerContext.Users.FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
+            var response = await CampaignManagerContext.Users
+                .FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
             if (response != null)
             {
                 return new UserResponse
@@ -43,8 +44,13 @@ namespace CampaignManager.Services.Services
                     Id = response.Id,
                     Email = response.Email,
                     FirstName = response.FirstName,
-                    LastName = response.LastName
-                };
+                    LastName = response.LastName,
+                    Persona= response.PersonaId.ToString(),
+                    CampaignPersonas = response.CampaignPersonas.ToList(),
+                    Campaigns = await CampaignManagerContext.Campaigns
+                        .Where(c => c.CampaignPersonas.Any(cp => cp.Users.Any(u => u.Id == response.Id)))
+                        .ToListAsync(),
+                }; ;
             }
             else
             {

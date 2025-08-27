@@ -79,6 +79,23 @@ public partial class CampaignManagerContext : DbContext
                 .HasForeignKey(d => d.PersonaId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Users__PersonaId__4222D4EF");
+
+            entity.HasMany(d => d.CampaignPersonas).WithMany(p => p.Users)
+                .UsingEntity<Dictionary<string, object>>(
+                    "UserCampaignPersona",
+                    r => r.HasOne<CampaignPersona>().WithMany()
+                        .HasForeignKey("CampaignPersonaId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK__UserCampa__Campa__03F0984C"),
+                    l => l.HasOne<User>().WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK__UserCampa__UserI__02FC7413"),
+                    j =>
+                    {
+                        j.HasKey("UserId", "CampaignPersonaId");
+                        j.ToTable("UserCampaignPersonas");
+                    });
         });
 
         OnModelCreatingPartial(modelBuilder);

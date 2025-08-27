@@ -1,79 +1,75 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
+using CampaignManager.Services.Services.Abstractions; // IUserService
+using CampaignManager.Services.Models;               // UserResponse
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using System.Collections.Generic;
-using api.Models;
 
 namespace api.Authentication
 {
-    public static class LoginFunction
+    public class LoginFunction
     {
-        [FunctionName("Login")]
-        public static async Task<UserResponse> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "login")] HttpRequest req,
-            ILogger log)
+        private readonly IUserService userService;
+        private readonly ILogger<LoginFunction> _log;
+
+        public LoginFunction(IUserService users, ILogger<LoginFunction> log)
         {
-            log.LogInformation("Login function triggered.");
-
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            var loginData = JsonConvert.DeserializeObject<LoginRequest>(requestBody);
-            var email = loginData.Email;
-            var password = loginData.Password;
-
-            if (email == "player@endersgame.com" && password == "pleasedontabuse")
-            {
-                var playerContentAccess = new List<ContentAccess>()
-                    //make a new list of ContentAccess items
-                    {
-                        new ContentAccess() { Name = "RealmsBetwixt", DisplayName = "Realms Betwixt Campaign Access", HasAccess = true },
-                        new ContentAccess() { Name = "Public", DisplayName = "Public Campaign Details", HasAccess = true },
-                        new ContentAccess() { Name = "Private", DisplayName = "Private Campaign Details", HasAccess = false }
-                    };
-                return new UserResponse()
-                {
-                    Id = Guid.Empty,
-                    Email = email,
-                    FirstName = "Guest",
-                    LastName = "McGuest",
-                    Persona = "Player",
-                    ContentAccess = playerContentAccess
-                };
-            }
-            if (email == "admin@endersgame.com" && password == "vampjuice123")
-            {
-                var adminContentAccess = new List<ContentAccess>()
-                    //make a new list of ContentAccess items
-                    {
-                        new ContentAccess() { Name = "RealmsBetwixt", DisplayName = "Realms Betwixt Campaign Access", HasAccess = true },
-                        new ContentAccess() { Name = "Public", DisplayName = "Public Campaign Details", HasAccess = true },
-                        new ContentAccess() { Name = "Private", DisplayName = "Private Campaign Details", HasAccess = true }
-                    };
-                return new UserResponse()
-                {
-                    Id = Guid.Empty,
-                    Email = email,
-                    FirstName = "Ender",
-                    LastName = "Wiggin",
-                    Persona = "Admin",
-                    ContentAccess = adminContentAccess
-                };
-            }
-            else
-            {
-                return null;
-            }
+            userService = users;
+            _log = log;
         }
 
-        public class LoginRequest
+        private sealed class LoginRequest
         {
             public string Email { get; set; }
             public string Password { get; set; }
+        }
+
+        [Function("Login")]
+        public async Task<HttpResponseData> GetUser(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "login")]
+            HttpRequestData req)
+        {
+            _log.LogInformation("Login function triggered (isolated worker).");
+
+            // Read and deserialize request body
+            string body;
+            using (var reader = new StreamReader(req.Body))
+                body = await reader.ReadToEndAsync();
+
+            LoginRequest login;
+            try
+            {
+                login = JsonSerializer.Deserialize<LoginRequest>(body, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+            }
+            catch
+            {
+                var badJson = req.CreateResponse(System.Net.HttpStatusCode.BadRequest);
+                await badJson.WriteAsJsonAsync(new { error = "Invalid JSON body." });
+                return badJson;
+            }
+
+            if (login == null || string.IsNullOrWhiteSpace(login.Email) || string.IsNullOrWhiteSpace(login.Password))
+            {
+                var badRequest = req.CreateResponse(System.Net.HttpStatusCode.BadRequest);
+                await badRequest.WriteAsJsonAsync(new { error = "Email and password are required." });
+                return badRequest;
+            }
+
+            var user = await userService.GetUser(login.Email, login.Password);
+            if (user == null)
+            {
+                var unauthorized = req.CreateResponse(System.Net.HttpStatusCode.Unauthorized);
+                return unauthorized;
+            }
+
+            var ok = req.CreateResponse(System.Net.HttpStatusCode.OK);
+            await ok.WriteAsJsonAsync<UserResponse>(user); // returns your service DTO directly
+            return ok;
         }
     }
 }

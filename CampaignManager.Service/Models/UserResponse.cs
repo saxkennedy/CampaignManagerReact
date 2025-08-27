@@ -1,4 +1,6 @@
-﻿namespace CampaignManager.Services.Models
+﻿using Data.Models;
+
+namespace CampaignManager.Services.Models
 {
     public class UserResponse
     {
@@ -6,8 +8,8 @@
         public string Email { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
-        public List<Guid>? Campaigns { get; set; }
+        public List<Campaign>? Campaigns { get; set; }
         public string Persona { get; set; }
-        public List<ContentAccess>? ContentAccess { get; set; } // later will change to DB ref
+        public List<CampaignPersona> CampaignPersonas { get; set; } // later will change to DB ref
     }
 }

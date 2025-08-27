@@ -16,4 +16,6 @@ public partial class CampaignPersona
     public int Hierarchy { get; set; }
 
     public virtual Campaign Campaign { get; set; }
+
+    public virtual ICollection<User> Users { get; set; } = new List<User>();
 }
