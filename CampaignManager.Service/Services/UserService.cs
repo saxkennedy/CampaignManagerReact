@@ -38,19 +38,18 @@ namespace CampaignManager.Services.Services
             var response = await CampaignManagerContext.Users
                 .FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
             if (response != null)
-            {
-                return new UserResponse
+            {                 
+                var userResponse =  new UserResponse
                 {
                     Id = response.Id,
                     Email = response.Email,
                     FirstName = response.FirstName,
                     LastName = response.LastName,
                     Persona= response.PersonaId.ToString(),
-                    CampaignPersonas = response.CampaignPersonas.ToList(),
-                    Campaigns = await CampaignManagerContext.Campaigns
-                        .Where(c => c.CampaignPersonas.Any(cp => cp.Users.Any(u => u.Id == response.Id)))
-                        .ToListAsync(),
+                    CampaignPersonas = await CampaignManagerContext.Procedures.GetCampaignPersonaAsync(response.Id)                  
                 }; ;
+
+                return userResponse;
             }
             else
             {
