@@ -7,40 +7,62 @@ export const CampaignDashboard = () => {
     const [selectedRoute, setSelectedRoute] = React.useState(null);
     const [selectedTitle, setSelectedTitle] = React.useState('');
 
-    const handleClick = (item) => {
-        setCampaignDetails((prev) => ({ ...prev, [item]: !prev[item] }));
+    const handleClick = (key) => {
+        setCampaignDetails((prev) => ({ ...prev, [key]: !prev[key] }));
     };
 
-    const handleNavigate = (route, title='Campaign Document') => {
+    const handleNavigate = (route, title = 'Campaign Document') => {
         if (route) {
             setSelectedRoute(route);
             setSelectedTitle(title);
         }
     };
 
-    const renderChildren = (children, level = 1) =>
-        children.map((child) => (
-            <div key={child.name} style={{ paddingLeft: level * 16 }}>
-                <ListItem button onClick={() => handleClick(child.name)}>
-                    <ListItemText primary={child.name} />
-                    {campaignDetails[child.name] ? '^' : '>'}
+    // ✅ Single renderer that:
+    // - expands only if a node has children
+    // - opens ContentViewer directly if a node is a leaf with a route
+    const renderNode = (item, level = 0) => {
+        const hasChildren = Array.isArray(item.children) && item.children.length > 0;
+        const pad = { paddingLeft: level * 16 };
+
+        if (hasChildren) {
+            const isOpen = !!campaignDetails[item.name];
+            return (
+                <div key={`${item.name}-${level}`}>
+                    <ListItem button onClick={() => handleClick(item.name)} style={pad}>
+                        <ListItemText primary={item.name} />
+                        {isOpen ? '^' : '>'}
+                    </ListItem>
+                    <Collapse in={isOpen} timeout="auto" unmountOnExit>
+                        <List component="div" disablePadding>
+                            {item.children.map((child) => renderNode(child, level + 1))}
+                        </List>
+                    </Collapse>
+                </div>
+            );
+        }
+
+        // Leaf node
+        if (item.route) {
+            return (
+                <ListItem
+                    key={`${item.name}-${level}`}
+                    button
+                    onClick={() => handleNavigate(item.route, item.name)}
+                    style={pad}
+                >
+                    <ListItemText primary={item.name} />
                 </ListItem>
-                <Collapse in={campaignDetails[child.name]} timeout="auto" unmountOnExit>
-                    <List component="div" disablePadding>
-                        {child.children?.length ? renderChildren(child.children, level + 1) : null}
-                        {child.route && (
-                            <ListItem
-                                button
-                                onClick={() => handleNavigate(child.route, child.name)}
-                                style={{ paddingLeft: (level + 1) * 16 }}
-                            >
-                                <ListItemText primary={child.name} />
-                            </ListItem>
-                        )}
-                    </List>
-                </Collapse>
-            </div>
-        ));
+            );
+        }
+
+        // Leaf without route — render as disabled/non-interactive
+        return (
+            <ListItem key={`${item.name}-${level}`} style={pad} disabled>
+                <ListItemText primary={item.name} />
+            </ListItem>
+        );
+    };
 
     return (
         <Box
@@ -71,26 +93,13 @@ export const CampaignDashboard = () => {
                     boxSizing: 'border-box',
                 }}
             >
-                {realmsBetwixt.map((item) => (
-                    <div key={item.name}>
-                        <ListItem button onClick={() => handleClick(item.name)}>
-                            <ListItemText primary={item.name} />
-                            {campaignDetails[item.name] ? '^' : '>'}
-                        </ListItem>
-                        <Collapse in={campaignDetails[item.name]} timeout="auto" unmountOnExit>
-                            <List component="div" disablePadding>
-                                {renderChildren(item.children)}
-                            </List>
-                        </Collapse>
-                    </div>
-                ))}
+                {realmsBetwixt.map((item) => renderNode(item, 0))}
             </List>
 
             {/* Right content viewer fills remaining space */}
             <Box sx={{ flex: 1, minWidth: 0, display: 'flex' }}>
                 {selectedRoute ? (
-                    // parent container already has top padding, so set topOffset={0}
-                    <ContentViewer url={selectedRoute} title={selectedTitle}  topOffset={0} />
+                    <ContentViewer url={selectedRoute} title={selectedTitle} topOffset={0} />
                 ) : (
                     <Box sx={{ p: 2, color: 'text.secondary' }}>
                         Select an item to view its content.
@@ -125,7 +134,7 @@ const realmsBetwixt = [
                 name: 'Allomancy',
                 children: [
                     { name: 'Allomancy Overview', route: 'https://docs.google.com/document/d/1-m4_tvKHyg6r4C8vftxiMId9FRbTnLlNs3R4ykiSmp8/edit?usp=sharing', access: 'Public' },
-                    { name: 'Allomantic Metal Pricing Guide', route: 'https://docs.google.com/spreadsheets/d/10ksMqrjvnhhaDo1OhRJCIJWCBM8b25p5/edit?usp=sharing&ouid=115506903053452023206&rtpof=true&sd=true', access: 'Public'},
+                    //{ name: 'Allomantic Metal Pricing Guide', route: 'https://docs.google.com/spreadsheets/d/10ksMqrjvnhhaDo1OhRJCIJWCBM8b25p5/edit?usp=sharing&ouid=115506903053452023206&rtpof=true&sd=true', access: 'Public'},
                     //{ name: 'DM Only - Allomancy Snap Chart', route: '', access: 'Private' },
                     {
                         name: 'Misting Prestige Classes',
@@ -154,29 +163,29 @@ const realmsBetwixt = [
             },
         ],
     },
-    {
-        name: 'Notable Non-Player Characters',
-        children: [
-            { name: 'NPCs', route: 'https://docs.google.com/spreadsheets/d/1ME0RACvCqrratCMMVSmo2Lh_HR39MV5oEWtx816RFtg/edit?usp=sharing', access: 'Public' },
-            { name: 'DM Only - NPCs', route: '', access: 'Private' },
-        ],
-    },
-    {
-        name: 'Maps',
-        children: [
-            { name: 'World Map', route: '', access: 'Public' },
-            { name: 'DM Only - World Map', route: '', access: 'Private' },
-        ],
-    },
-    {
-        name: 'Chapter Summaries & Encounters',
-        children: [
-            { name: 'Chapter 1 Summary', route: '', access: 'Public' },
-            { name: 'DM Only - Chapter 1 Summary', route: '', access: 'Private' },
-            { name: 'Chapter 2 Summary', route: '', access: 'Public' },
-            { name: 'DM Only - Chapter 2 Summary', route: '', access: 'Private' },
-            { name: 'Chapter 3 Summary', route: '', access: 'Public' },
-            { name: 'DM Only - Chapter 3 Summary', route: '', access: 'Private' },
-        ],
-    },
+    //{
+    //    name: 'Notable Non-Player Characters',
+    //    children: [
+    //        { name: 'NPCs', route: 'https://docs.google.com/spreadsheets/d/1ME0RACvCqrratCMMVSmo2Lh_HR39MV5oEWtx816RFtg/edit?usp=sharing', access: 'Public' },
+    //        { name: 'DM Only - NPCs', route: '', access: 'Private' },
+    //    ],
+    //},
+    //{
+    //    name: 'Maps',
+    //    children: [
+    //        { name: 'World Map', route: '', access: 'Public' },
+    //        { name: 'DM Only - World Map', route: '', access: 'Private' },
+    //    ],
+    //},
+    //{
+    //    name: 'Chapter Summaries & Encounters',
+    //    children: [
+    //        { name: 'Chapter 1 Summary', route: '', access: 'Public' },
+    //        { name: 'DM Only - Chapter 1 Summary', route: '', access: 'Private' },
+    //        { name: 'Chapter 2 Summary', route: '', access: 'Public' },
+    //        { name: 'DM Only - Chapter 2 Summary', route: '', access: 'Private' },
+    //        { name: 'Chapter 3 Summary', route: '', access: 'Public' },
+    //        { name: 'DM Only - Chapter 3 Summary', route: '', access: 'Private' },
+    //    ],
+    //},
 ];
