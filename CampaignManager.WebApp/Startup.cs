@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using CampaignManager.Services.Services.Abstractions;
 using CampaignManager.Services.Services;
+using Data.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace CampaignManager.WebApp
 {
@@ -26,18 +28,18 @@ namespace CampaignManager.WebApp
             {
                 configuration.RootPath = "App/build";
             });
-            //services.AddDbContext<CampaignManagerContext>(options =>
-            //    options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"),
-            //    builder => { builder.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null); }
-            //    ));
-            //DbContextOptionsBuilder<CampaignManagerContext> builder = new DbContextOptionsBuilder<CampaignManagerContext>();
-            //builder.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
-            ////store the connection string in a variable
-            //string? connectionString = Configuration.GetConnectionString("DefaultConnection");
-            //using (CampaignManagerContext context = new CampaignManagerContext(builder.Options))
-            //{
-            //    context.Database.Migrate();
-            //}
+            services.AddDbContext<CampaignManagerContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"),
+                builder => { builder.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null); }
+                ));
+            DbContextOptionsBuilder<CampaignManagerContext> builder = new DbContextOptionsBuilder<CampaignManagerContext>();
+            builder.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+            //store the connection string in a variable
+            string? connectionString = Configuration.GetConnectionString("DefaultConnection");
+            using (CampaignManagerContext context = new CampaignManagerContext(builder.Options))
+            {
+                context.Database.Migrate();
+            }
             services.AddRazorPages();
             services.AddMemoryCache();
         }
