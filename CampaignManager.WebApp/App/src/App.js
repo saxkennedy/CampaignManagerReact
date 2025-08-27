@@ -3,7 +3,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import Navigation from './components/Navigation';
-import CampaignSideNav from './components/campaign/CampaignSideNav';
+import CampaignSideNav from './components/campaign/CampaignDashboard';
 import React, { Component } from 'react';
 import SphereConverter from './components/player-tools/SphereConverter';
 
@@ -83,7 +83,7 @@ export class App extends Component {
                         <Route
                             path="/sphereConverter"
                             element={
-                                <div style={{ height: "96vh", width: "100vw", position: "relative", top: "4vh" }}>
+                                <div style={{ height: "96vh", width: "100vw", position: "relative", top: "4vh" }}>                                
                                     <SphereConverter user={this.state.user} />
                                 </div>
                             }
