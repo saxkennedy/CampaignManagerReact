@@ -59,7 +59,11 @@ export class App extends Component {
                                 </div>
                             }
                         />
-                        {/* <Route path="/register" element={<Register setUser={this.setUser} />} />*/}
+                        <Route
+                            path="/register"
+                            element={
+                                <Register setUser={this.setUser} />}
+                        />
                         <Route
                             path="/dashboard"
                             element={
