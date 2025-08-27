@@ -1,11 +1,12 @@
-﻿using System.IO;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using CampaignManager.Services.Models;               // UserResponse
 using CampaignManager.Services.Services.Abstractions; // IUserService
-using CampaignManager.Services.Models;               // UserResponse
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
+using System.IO;
+using System.Net;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace api.Authentication
 {
@@ -18,6 +19,16 @@ namespace api.Authentication
         {
             userService = users;
             _log = log;
+        }
+        private static readonly JsonSerializerOptions JsonOpts = new()
+        {
+            PropertyNameCaseInsensitive = true
+        };
+        private static async Task<T> ReadBodyAsync<T>(HttpRequestData req)
+        {
+            using var reader = new StreamReader(req.Body);
+            var body = await reader.ReadToEndAsync();
+            return JsonSerializer.Deserialize<T>(body, JsonOpts);
         }
 
         private sealed class LoginRequest
@@ -70,6 +81,18 @@ namespace api.Authentication
             var ok = req.CreateResponse(System.Net.HttpStatusCode.OK);
             await ok.WriteAsJsonAsync<UserResponse>(user); // returns your service DTO directly
             return ok;
+        }
+
+        [Function("CreateUser")]
+        public async Task<HttpResponseData> CreateUser(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "createUser")] HttpRequestData req)
+        {
+            var create = await ReadBodyAsync<NewUserRequest>(req);
+            var newUser = await userService.CreateUser(create);
+
+            var response = req.CreateResponse(HttpStatusCode.Created);
+            await response.WriteAsJsonAsync(newUser);
+            return response;
         }
     }
 }
