@@ -1,4 +1,4 @@
-﻿import React, { useRef, useState, useMemo } from 'react'; // ⬅️ add useMemo
+﻿import React, { useRef, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     AppBar,
@@ -12,22 +12,17 @@ import {
 export const Navigation = (props) => {
     const navigate = useNavigate();
     const [drawerOpen, setDrawerOpen] = useState(false);
-    const [drawerContent, setDrawerContent] = useState([]);
+    const [drawerContent, setDrawerContent] = useState([]); // can be strings or { id,label }
     const [drawerKey, setDrawerKey] = useState(null); // 'campaignMaterials' | 'playerTools' | null
     const appBarRef = useRef(null);
 
-    const { campaignLabels, campaignRouteByLabel } = useMemo(() => {
+    // Build campaign list as [{ id: CampaignId, label: CampaignName }
+    const campaigns = useMemo(() => {
         const cps = props.user?.CampaignPersonas ?? [];
-        const sorted = [...cps].sort(
-            (a, b) =>
-                (a.CampaignName || '').localeCompare(b.CampaignName || '')
+        const sorted = [...cps].sort((a, b) =>
+            (a.CampaignName || '').localeCompare(b.CampaignName || '')
         );
-        const labels = sorted.map(cp => cp.CampaignName);
-        const map = new Map(sorted.map(cp => {
-            const label = cp.CampaignName;
-            return [label, `/campaigns/${cp.CampaignId}`]; // route by CampaignId
-        }));
-        return { campaignLabels: labels, campaignRouteByLabel: map };
+        return sorted.map(cp => ({ id: cp.CampaignId, label: cp.CampaignName }));
     }, [props.user]);
 
     const openDrawer = (key, content) => {
@@ -47,6 +42,7 @@ export const Navigation = (props) => {
     const handleTopNavClick = (route) => {
         if (route === 'login') {
             props.setUser?.(null);
+            props.setActiveCampaignId?.(null); // optional clear
             setDrawerOpen(false);
             navigate('/login');
             return;
@@ -58,7 +54,7 @@ export const Navigation = (props) => {
             return;
         }
         if (route === 'campaignMaterials') {
-            toggleDrawer('campaignMaterials', campaignLabels);
+            toggleDrawer('campaignMaterials', campaigns); // use ids, not names
             return;
         }
         if (route === 'playerTools') {
@@ -70,15 +66,21 @@ export const Navigation = (props) => {
 
     const handleDrawerOptionClick = (option) => {
         setDrawerOpen(false);
+
         if (drawerKey === 'campaignMaterials') {
-            const route = campaignRouteByLabel.get(option);
-            if (route) {
+            // option is { id, label }
+            const id = typeof option === 'string' ? null : option.id;
+            if (id) {
                 props.setOpenCampaignNav?.(true);
-                navigate(route);
+                props.setActiveCampaignId?.(id); // optional: lift to parent (App.js)
+                navigate(`/campaigns/${id}`, { state: { campaignId: id } }); // pass to CampaignDashboard too
             }
             return;
         }
-        const normalized = option.toLowerCase().replace(/\s+/g, '');
+
+        // playerTools (strings)
+        const label = typeof option === 'string' ? option : option?.label ?? '';
+        const normalized = label.toLowerCase().replace(/\s+/g, '');
         navigate('/' + normalized);
     };
 
@@ -125,32 +127,36 @@ export const Navigation = (props) => {
                             justifyContent: 'center',
                             flexWrap: 'wrap',
                             p: 2,
-                            backgroundColor: '#1565c0', // subtle contrast under the AppBar
+                            backgroundColor: '#1565c0',
                             borderTop: '1px solid rgba(255,255,255,0.2)',
                         }}
                     >
-                        {drawerContent.map((option, index) => (
-                            <Button
-                                key={index}
-                                variant="outlined"
-                                onClick={() => handleDrawerOptionClick(option)}
-                                sx={{
-                                    m: 1,
-                                    color: 'white',
-                                    borderColor: 'white',
-                                    fontWeight: 600,
-                                    textTransform: 'none',
-                                    borderRadius: 2,
-                                    px: 2.5,
-                                    '&:hover': {
-                                        backgroundColor: 'rgba(255,255,255,0.15)',
+                        {drawerContent.map((option, index) => {
+                            const label = typeof option === 'string' ? option : option.label;
+                            const key = typeof option === 'string' ? index : option.id; // ← unique by campaignId
+                            return (
+                                <Button
+                                    key={key}
+                                    variant="outlined"
+                                    onClick={() => handleDrawerOptionClick(option)}
+                                    sx={{
+                                        m: 1,
+                                        color: 'white',
                                         borderColor: 'white',
-                                    },
-                                }}
-                            >
-                                {option}
-                            </Button>
-                        ))}
+                                        fontWeight: 600,
+                                        textTransform: 'none',
+                                        borderRadius: 2,
+                                        px: 2.5,
+                                        '&:hover': {
+                                            backgroundColor: 'rgba(255,255,255,0.15)',
+                                            borderColor: 'white',
+                                        },
+                                    }}
+                                >
+                                    {label}
+                                </Button>
+                            );
+                        })}
                     </Box>
                 </Collapse>
             </AppBar>
