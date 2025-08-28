@@ -41,7 +41,38 @@ namespace CampaignManager.Services.Services
             {
                 return "Failed.  " + ex.Message;
             }
+        }
 
+        public async Task<AdminCampaignContentResponse> GetCampaignContent(Guid campaignId)
+        {
+             
+            var contents = await CampaignManagerContext.CampaignCategoryContentXrefs
+                .AsNoTracking()
+                .Where(c => c.CampaignId == campaignId)
+                .Select(c => new CampaignCategoryContentXref
+                {
+                    Id = c.Id,
+                    CampaignId = c.CampaignId,
+                    ParentContentId = c.ParentContentId,
+                    CreatorId = c.CreatorId,
+                    DisplayName = c.DisplayName,
+                    Description = c.Description,
+                    AccessHierarchyLevel = c.AccessHierarchyLevel,
+                    ContentLink = c.ContentLink,
+                    IconLink = c.IconLink,
+                    SimpleContent = c.SimpleContent
+                })
+                .ToListAsync();
+            var campaignPersonas = await CampaignManagerContext.CampaignPersonas
+                .AsNoTracking()
+                .Where(cp => cp.CampaignId == campaignId)
+                .ToListAsync();
+            var response = new AdminCampaignContentResponse
+            {
+                CampaignContent = contents,
+                CampaignPersonas = campaignPersonas
+            };            
+            return response;
         }
 
     }

@@ -21,18 +21,65 @@ import {
 import CampaignAdminService from '../../api/CampaignAdminService';
 
 const DEFAULT_ACCESS_LEVELS = [
-    { value: 1, label: 'Dungeon Master' },
-    { value: 8, label: 'Player' },
-    { value: 10, label: 'Spectator' },
+    { value: 1, label: 'DM Only' },
+    { value: 10, label: 'Public' },
 ];
+
+const pick = (obj, pascal, camel) => obj?.[pascal] ?? obj?.[camel];
+
+const buildAccessLevels = (personas = [], contents = []) => {
+    // 1) Prefer personas: label = `${Hierarchy} - ${DisplayName}`
+    const map = new Map(); // key by numeric hierarchy to avoid duplicates
+    for (const p of personas) {
+        const valueRaw = p?.Hierarchy ?? p?.hierarchy;
+        if (valueRaw == null) continue;
+        const value = Number(valueRaw);
+
+        const display =
+            p?.DisplayName ??
+            p?.displayName ??
+            p?.CampaignPersonaName ??        // fallbacks if your model uses a different name
+            p?.campaignPersonaName ??
+            '';
+
+        if (!display) continue;
+
+        const label = `${value} - ${display}`;
+        if (!map.has(value)) map.set(value, label);
+    }
+
+    let levels = Array.from(map, ([value, label]) => ({ value, label }));
+
+    // 2) If none from personas, derive from distinct content levels
+    if (levels.length === 0) {
+        const set = new Set(
+            (contents || [])
+                .map(c => c?.AccessHierarchyLevel ?? c?.accessHierarchyLevel)
+                .filter(v => v != null)
+        );
+        levels = Array.from(set)
+            .sort((a, b) => Number(a) - Number(b))
+            .map(v => ({ value: Number(v), label: `${v} - Level ${v}` }));
+    }
+    // 3) Fallback defaults
+    if (levels.length === 0) {
+        levels = DEFAULT_ACCESS_LEVELS.map(x => ({ value: Number(x.value), label: x.label }));
+    }
+    // sort ascending by numeric value
+    levels.sort((a, b) => Number(a.value) - Number(b.value));
+    return levels;
+};
+
 
 /**
  * Props:
- *  - props.campaignId: string (required)
+ *  - campaignId: string (required)
  */
-const CampaignAdmin = (props) => {    
+const CampaignAdmin = ({ campaignId }) => {
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState('');
+
+    // Data normalized to { contents: [...], accessLevels: [...] }
     const [data, setData] = useState({ contents: [], accessLevels: DEFAULT_ACCESS_LEVELS });
 
     const [showForm, setShowForm] = useState(false);
@@ -49,25 +96,28 @@ const CampaignAdmin = (props) => {
     const [iconLink, setIconLink] = useState('');
     const [simpleContent, setSimpleContent] = useState('');
 
-    // Build parent dropdown (with indentation) from flat contents
+    // Parent dropdown (with indentation) from flat contents
     const parentOptions = useMemo(() => {
         const items = data?.contents || [];
         const byParent = new Map();
         for (const it of items) {
-            const key = it.ParentContentId || 'root';
-            if (!byParent.has(key)) byParent.set(key, []);
-            byParent.get(key).push(it);
+            const parentKey = it?.ParentContentId ?? it?.parentContentId ?? 'root';
+            if (!byParent.has(parentKey)) byParent.set(parentKey, []);
+            byParent.get(parentKey).push(it);
         }
-        for (const [k, arr] of byParent) {
-            arr.sort((a, b) => (a.DisplayName || '').localeCompare(b.DisplayName || ''));
+        for (const [, arr] of byParent) {
+            arr.sort((a, b) =>
+                (a?.DisplayName || a?.displayName || '').localeCompare(b?.DisplayName || b?.displayName || '')
+            );
         }
-
         const out = [{ value: 'root', label: '— Top level —' }];
         const dfs = (parentKey, depth) => {
             const kids = byParent.get(parentKey) || [];
             for (const k of kids) {
-                out.push({ value: k.Id, label: `${'— '.repeat(depth)}${k.DisplayName}` });
-                dfs(k.Id, depth + 1);
+                const id = pick(k, 'Id', 'id');
+                const labelText = pick(k, 'DisplayName', 'displayName');
+                out.push({ value: id, label: `${'— '.repeat(depth)}${labelText}` });
+                dfs(id, depth + 1);
             }
         };
         dfs('root', 1);
@@ -90,34 +140,29 @@ const CampaignAdmin = (props) => {
         try {
             setLoading(true);
             setLoadError('');
-            const resp = await CampaignAdminService.getStructure(props.campaignId);
+            const resp = await CampaignAdminService.getStructure(campaignId);
 
-            // If API returns boolean false or empty, use safe defaults
-            const normalized =
-                (resp && resp !== false)
-                    ? resp
-                    : { contents: [], accessLevels: DEFAULT_ACCESS_LEVELS };
+            // tolerate boolean false or odd casings
+            const contents = pick(resp, 'CampaignContent', 'campaignContent') || [];
+            const personas = pick(resp, 'CampaignPersonas', 'campaignPersonas') || [];
+
+            const accessLevels = buildAccessLevels(personas, contents);
 
             setData({
-                contents: Array.isArray(normalized.contents) ? normalized.contents : [],
-                accessLevels: Array.isArray(normalized.accessLevels) && normalized.accessLevels.length
-                    ? normalized.accessLevels
-                    : DEFAULT_ACCESS_LEVELS,
+                contents,
+                accessLevels,
             });
 
-            // Set default access level if needed
-            const firstLevel = (normalized.accessLevels && normalized.accessLevels[0]?.value) ?? DEFAULT_ACCESS_LEVELS[0].value;
-            setAccessLevel(firstLevel);
+            setAccessLevel(accessLevels[0]?.value ?? DEFAULT_ACCESS_LEVELS[0].value);
         } catch (e) {
-            // On error, still allow adding by falling back to defaults
+            // Show a soft warning and allow adding anyway
+            setLoadError(e?.message || 'Unable to load campaign data. Using defaults.');
             setData({ contents: [], accessLevels: DEFAULT_ACCESS_LEVELS });
             setAccessLevel(DEFAULT_ACCESS_LEVELS[0].value);
-            // Don't block the page with an error; show a soft note instead
-            setLoadError(e?.message || 'Unable to load campaign data. Using defaults.');
         } finally {
             setLoading(false);
         }
-    }, [props.campaignId]);
+    }, [campaignId]);
 
     useEffect(() => {
         refreshStructure();
@@ -143,12 +188,11 @@ const CampaignAdmin = (props) => {
         }
 
         const payload = {
-            CampaignId: props.campaignId,
+            CampaignId: campaignId,
             ParentContentId: parentId === 'root' ? null : parentId,
             DisplayName: displayName.trim(),
             Description: description.trim() || null,
             AccessHierarchyLevel: Number(accessLevel),
-            CreatorId: props.userId,
             ContentLink: contentLink.trim() || null,
             IconLink: iconLink.trim() || null,
             SimpleContent: simpleContent.trim() || null,
@@ -156,26 +200,18 @@ const CampaignAdmin = (props) => {
 
         try {
             setSaving(true);
-            const res = await CampaignAdminService.addContent(props.campaignId, payload);
-
-            // Your API returns plain text "Success" or "Failed. …"
+            const res = await CampaignAdminService.addContent(campaignId, payload);
             const isSuccess =
                 (typeof res === 'string' && res.toLowerCase().startsWith('success')) ||
-                (typeof res === 'object' && res?.Success === true); // tolerate a future success shape
+                (typeof res === 'object' && res?.Success === true);
 
             if (!isSuccess) {
-                const msg =
-                    (typeof res === 'string' ? res : res?.error) || 'Save failed.';
-                throw new Error(msg);
+                throw new Error(typeof res === 'string' ? res : (res?.error || 'Save failed.'));
             }
 
             setSaveOk('Content added successfully.');
-
-            // 🔄 Re-fetch the latest structure from DB
-            await refreshStructure();
-
-            // Keep the form open for quick successive adds; fields cleared
-            resetForm();
+            await refreshStructure(); // pull latest from DB
+            resetForm(); // keep form open, clear fields for fast subsequent adds
         } catch (err) {
             setSaveError(err?.message || 'Save failed.');
         } finally {
@@ -186,7 +222,7 @@ const CampaignAdmin = (props) => {
     return (
         <Box
             sx={{
-                height: 'calc(100vh - 0px)', // parent container handles top padding
+                height: 'calc(100vh - 0px)',
                 width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
@@ -194,10 +230,7 @@ const CampaignAdmin = (props) => {
             }}
         >
             <Card>
-                <CardHeader
-                    title="Campaign Administration"
-                    subheader={`Campaign ID: ${props.campaignId}`}
-                />
+                <CardHeader title="Campaign Administration" subheader={`Campaign ID: ${campaignId}`} />
                 <Divider />
                 <CardContent>
                     {loading && (
@@ -295,7 +328,7 @@ const CampaignAdmin = (props) => {
 
                                         <Grid item xs={12} md={6}>
                                             <TextField
-                                                label="Content Link (Google Doc/Sheet/Slide) - (Optional)"
+                                                label="Content Link (Google Doc/Sheet/Slide)"
                                                 value={contentLink}
                                                 onChange={(e) => setContentLink(e.target.value)}
                                                 fullWidth
