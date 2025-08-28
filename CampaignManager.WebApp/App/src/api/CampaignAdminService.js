@@ -18,9 +18,9 @@ async function handleResponse(res) {
 class CampaignAdminService {
     async getStructure(campaignId) {
         const res = await Api.fetch(`/api/campaignadmin/${campaignId}/structure`, {
-            method: 'GET',
+            method: 'GET'
         });
-        return handleResponse(res);
+        return res;
     }
 
     async addContent(campaignId, payload) {
@@ -29,7 +29,7 @@ class CampaignAdminService {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
         });
-        return handleResponse(res);
+        return res;
     }
 
     // Optional future helpers:
