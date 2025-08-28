@@ -13,5 +13,7 @@ public partial class Campaign
 
     public string Description { get; set; }
 
+    public virtual ICollection<CampaignCategoryContentXref> CampaignCategoryContentXrefs { get; set; } = new List<CampaignCategoryContentXref>();
+
     public virtual ICollection<CampaignPersona> CampaignPersonas { get; set; } = new List<CampaignPersona>();
 }

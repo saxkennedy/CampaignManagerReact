@@ -16,6 +16,10 @@
    "T4TemplatePath": null,
    "Tables": [
       {
+         "Name": "[dbo].[CampaignCategoryContentXREF]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[CampaignPersonas]",
          "ObjectType": 0
       },

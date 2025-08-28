@@ -18,6 +18,7 @@ var host = new HostBuilder()
 
         // Register your service so LoginFunction can get IUserService in its ctor
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<ICampaignAdminService, CampaignAdminService>();
         services.AddHttpClient(); // ✅ enables IHttpClientFactory
         // services.AddHttpClient("google", c => { c.Timeout = TimeSpan.FromSeconds(15); });
     })
