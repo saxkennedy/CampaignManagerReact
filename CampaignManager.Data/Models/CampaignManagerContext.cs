@@ -15,6 +15,8 @@ public partial class CampaignManagerContext : DbContext
 
     public virtual DbSet<Campaign> Campaigns { get; set; }
 
+    public virtual DbSet<CampaignCategoryContentXref> CampaignCategoryContentXrefs { get; set; }
+
     public virtual DbSet<CampaignPersona> CampaignPersonas { get; set; }
 
     public virtual DbSet<SitePersona> SitePersonas { get; set; }
@@ -33,6 +35,21 @@ public partial class CampaignManagerContext : DbContext
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(250);
+        });
+
+        modelBuilder.Entity<CampaignCategoryContentXref>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Campaign__3214EC07C8D79780");
+
+            entity.ToTable("CampaignCategoryContentXREF");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.DisplayName).IsRequired();
+
+            entity.HasOne(d => d.Campaign).WithMany(p => p.CampaignCategoryContentXrefs)
+                .HasForeignKey(d => d.CampaignId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__CampaignC__Campa__160F4887");
         });
 
         modelBuilder.Entity<CampaignPersona>(entity =>
