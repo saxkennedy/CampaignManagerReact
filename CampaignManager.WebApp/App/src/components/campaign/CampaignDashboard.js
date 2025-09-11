@@ -196,7 +196,7 @@ const realmsBetwixt = [
                     {
                         displayName: 'Allomantic Metal Pricing Guide',
                         contentLink:
-                            'https://docs.google.com/spreadsheets/d/10ksMqrjvnhhaDo1OhRJCIJWCBM8b25p5/edit?usp=sharing&ouid=115506903053452023206&rtpof=true&sd=true',
+                            'https://docs.google.com/document/d/1Abpsi89U4x8-4sGF5YLkFNFyvjpTk9MDDhkGXJxp2bg/edit?usp=sharing',
                         accessHierarchyLevel: 10,
                     },
                     {
