@@ -15,35 +15,76 @@ namespace CampaignManager.Services.Services
             CampaignManagerContext = campaignManagerContext;
         }
 
-        public async Task<string> AddContent(AddContentRequest request)
+        public async Task<string> CRUDContent(CRUDContentRequest request)
         {
-            try
+            if (request.Delete)
             {
-                CampaignCategoryContentXref entry = new CampaignCategoryContentXref
+                var entry = await CampaignManagerContext.CampaignCategoryContentXrefs
+                    .FirstOrDefaultAsync(c => c.Id == request.Id);
+                if (entry == null)
                 {
-                    Id = Guid.NewGuid(),
-                    CampaignId = request.CampaignId,
-                    ParentContentId = request.ParentContentId ?? null,
-                    CreatorId = request.CreatorId,
-                    DisplayName = request.DisplayName,
-                    Description = request.Description ?? null,
-                    AccessHierarchyLevel = request.AccessHierarchyLevel,
-                    ContentLink = request.ContentLink ?? null,
-                    IconLink = request.IconLink ?? null,
-                    SimpleContent = request.SimpleContent ?? null,
-                };
-                CampaignManagerContext.CampaignCategoryContentXrefs.Add(entry);
-                CampaignManagerContext.SaveChanges();
-
-                return "Success";
+                    return "Failed.  Item not found.";
+                }
+                else { 
+                    var itemId = entry.Id;
+                    var children = CampaignManagerContext.CampaignCategoryContentXrefs
+                        .Where(c => c.ParentContentId == itemId);
+                    CampaignManagerContext.CampaignCategoryContentXrefs.RemoveRange(children);
+                    CampaignManagerContext.CampaignCategoryContentXrefs.Remove(entry);
+                    await CampaignManagerContext.SaveChangesAsync();
+                    return "Successfully Deleted Item"; 
+                }
             }
-            catch (Exception ex)
+            if (request.Id != Guid.Empty && request.Id != null) //update case
             {
-                return "Failed.  " + ex.Message;
+                var entry = await CampaignManagerContext.CampaignCategoryContentXrefs
+                    .FirstOrDefaultAsync(c => c.Id == request.Id);
+                if (entry == null)
+                {
+                    return "Failed.  Item not found.";
+                }
+                entry.DisplayName = request.DisplayName;
+                entry.Description = request.Description ?? null;
+                entry.AccessHierarchyLevel = request.AccessHierarchyLevel;
+                entry.ContentLink = request.ContentLink ?? null;
+                entry.IconLink = request.IconLink ?? null;
+                entry.SimpleContent = request.SimpleContent ?? null;
+                entry.ContentTypeId = request.ContentType;
+                CampaignManagerContext.CampaignCategoryContentXrefs.Update(entry);
+                await CampaignManagerContext.SaveChangesAsync();
+                return "Successfully Updated Item";
+            }
+            else
+            {
+                try
+                {
+                    CampaignCategoryContentXref entry = new CampaignCategoryContentXref
+                    {
+                        Id = Guid.NewGuid(),
+                        CampaignId = request.CampaignId,
+                        ParentContentId = request.ParentContentId ?? null,
+                        CreatorId = request.CreatorId,
+                        DisplayName = request.DisplayName,
+                        Description = request.Description ?? null,
+                        AccessHierarchyLevel = request.AccessHierarchyLevel,
+                        ContentLink = request.ContentLink ?? null,
+                        IconLink = request.IconLink ?? null,
+                        SimpleContent = request.SimpleContent ?? null,
+                        ContentTypeId = request.ContentType
+                    };
+                    CampaignManagerContext.CampaignCategoryContentXrefs.Add(entry);
+                    CampaignManagerContext.SaveChanges();
+
+                    return "Successfully added item";
+                }
+                catch (Exception ex)
+                {
+                    return "Failed.  " + ex.Message;
+                }
             }
         }
 
-        public async Task<AdminCampaignContentResponse> GetCampaignContent(Guid campaignId)
+        public async Task<CampaignContentResponse> GetAdminCampaignContent(Guid campaignId)
         {
              
             var contents = await CampaignManagerContext.CampaignCategoryContentXrefs
@@ -60,20 +101,24 @@ namespace CampaignManager.Services.Services
                     AccessHierarchyLevel = c.AccessHierarchyLevel,
                     ContentLink = c.ContentLink,
                     IconLink = c.IconLink,
-                    SimpleContent = c.SimpleContent
+                    SimpleContent = c.SimpleContent,
+                    ContentType = c.ContentType
                 })
                 .ToListAsync();
             var campaignPersonas = await CampaignManagerContext.CampaignPersonas
                 .AsNoTracking()
                 .Where(cp => cp.CampaignId == campaignId)
                 .ToListAsync();
-            var response = new AdminCampaignContentResponse
+            var contentTypes = await CampaignManagerContext.ContentTypes
+                .AsNoTracking()
+                .ToListAsync();
+            var response = new CampaignContentResponse
             {
                 CampaignContent = contents,
-                CampaignPersonas = campaignPersonas
+                CampaignPersonas = campaignPersonas,
+                ContentTypes = contentTypes
             };            
             return response;
         }
-
     }
 }

@@ -28,6 +28,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[ContentTypes]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[SitePersonas]",
          "ObjectType": 0
       },
