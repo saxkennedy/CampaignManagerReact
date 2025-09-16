@@ -27,5 +27,9 @@ public partial class CampaignCategoryContentXref
 
     public string SimpleContent { get; set; }
 
+    public Guid? ContentTypeId { get; set; }
+
     public virtual Campaign Campaign { get; set; }
+
+    public virtual ContentType ContentType { get; set; }
 }

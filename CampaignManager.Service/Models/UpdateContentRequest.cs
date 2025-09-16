@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace CampaignManager.Services.Models
 {
-    public class AddContentRequest
+    public class UpdateContentRequest
     {
+        public Guid ContentId { get; set; }
         public Guid CampaignId { get; set; }
         public Guid? ParentContentId { get; set; }
         public Guid? CreatorId { get; set; }
@@ -16,6 +17,6 @@ namespace CampaignManager.Services.Models
         public int AccessHierarchyLevel { get; set; }
         public string ContentLink { get; set; }
         public string IconLink { get; set; }
-        public string SimpleContent {  get; set; }
+        public string SimpleContent { get; set; }
     }
 }

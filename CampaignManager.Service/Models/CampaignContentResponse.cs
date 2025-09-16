@@ -7,9 +7,10 @@ using System.Threading.Tasks;
 
 namespace CampaignManager.Services.Models
 {
-    public class AdminCampaignContentResponse
+    public class CampaignContentResponse
     {
         public List<CampaignCategoryContentXref> CampaignContent { get; set; }
         public List<CampaignPersona> CampaignPersonas { get; set; }
+        public List<ContentType> ContentTypes { get; set; }
     }
 }

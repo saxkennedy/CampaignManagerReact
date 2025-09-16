@@ -19,6 +19,8 @@ public partial class CampaignManagerContext : DbContext
 
     public virtual DbSet<CampaignPersona> CampaignPersonas { get; set; }
 
+    public virtual DbSet<ContentType> ContentTypes { get; set; }
+
     public virtual DbSet<SitePersona> SitePersonas { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
@@ -50,6 +52,10 @@ public partial class CampaignManagerContext : DbContext
                 .HasForeignKey(d => d.CampaignId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__CampaignC__Campa__160F4887");
+
+            entity.HasOne(d => d.ContentType).WithMany(p => p.CampaignCategoryContentXrefs)
+                .HasForeignKey(d => d.ContentTypeId)
+                .HasConstraintName("FK__CampaignC__Conte__2CF2ADDF");
         });
 
         modelBuilder.Entity<CampaignPersona>(entity =>
@@ -65,6 +71,14 @@ public partial class CampaignManagerContext : DbContext
                 .HasForeignKey(d => d.CampaignId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__CampaignP__Campa__6FE99F9F");
+        });
+
+        modelBuilder.Entity<ContentType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__ContentT__3214EC0709FAEAB9");
+
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.Type).HasMaxLength(120);
         });
 
         modelBuilder.Entity<SitePersona>(entity =>

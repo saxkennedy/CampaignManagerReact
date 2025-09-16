@@ -23,7 +23,7 @@ class CampaignAdminService {
         return res;
     }
 
-    async addContent(campaignId, payload) {
+    async crudContent(campaignId, payload) {
         const res = await Api.fetch(`/api/campaignadmin/${campaignId}/content`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
