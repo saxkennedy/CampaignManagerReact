@@ -1,4 +1,4 @@
-﻿using CampaignManager.Services.Models;                 // AddContentRequest
+﻿using CampaignManager.Services.Models;                 // CRUDContentRequest
 using CampaignManager.Services.Services;
 using CampaignManager.Services.Services.Abstractions; // ICampaignAdminService
 using Microsoft.Azure.Functions.Worker;
@@ -40,12 +40,12 @@ namespace api
             }
 
             // Read body
-            AddContentRequest body;
+            CRUDContentRequest body;
             try
             {
                 using var reader = new StreamReader(req.Body);
                 var json = await reader.ReadToEndAsync();
-                body = JsonSerializer.Deserialize<AddContentRequest>(json, new JsonSerializerOptions
+                body = JsonSerializer.Deserialize<CRUDContentRequest>(json, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
@@ -72,7 +72,7 @@ namespace api
             string result;
             try
             {
-                result = await CampaignAdminService.AddContent(body);
+                result = await CampaignAdminService.CRUDContent(body);
             }
             catch (Exception ex)
             {
@@ -104,10 +104,10 @@ namespace api
         {
             _log.LogInformation("Get Admin Content Function triggered (isolated worker).");
 
-            var response = await CampaignAdminService.GetCampaignContent(Guid.Parse(campaignId));
+            var response = await CampaignAdminService.GetAdminCampaignContent(Guid.Parse(campaignId));
 
             var ok = req.CreateResponse(HttpStatusCode.OK);
-            await ok.WriteAsJsonAsync<AdminCampaignContentResponse>(response);
+            await ok.WriteAsJsonAsync<CampaignContentResponse>(response);
             return ok;
         }
     }
