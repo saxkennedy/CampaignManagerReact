@@ -49,7 +49,7 @@ namespace CampaignManager.Services.Services
                 entry.ContentLink = request.ContentLink ?? null;
                 entry.IconLink = request.IconLink ?? null;
                 entry.SimpleContent = request.SimpleContent ?? null;
-                entry.ContentTypeId = request.ContentType;
+                entry.ContentTypeId = request.ContentTypeId;
                 CampaignManagerContext.CampaignCategoryContentXrefs.Update(entry);
                 await CampaignManagerContext.SaveChangesAsync();
                 return "Successfully Updated Item";
@@ -70,7 +70,7 @@ namespace CampaignManager.Services.Services
                         ContentLink = request.ContentLink ?? null,
                         IconLink = request.IconLink ?? null,
                         SimpleContent = request.SimpleContent ?? null,
-                        ContentTypeId = request.ContentType
+                        ContentTypeId = request.ContentTypeId
                     };
                     CampaignManagerContext.CampaignCategoryContentXrefs.Add(entry);
                     CampaignManagerContext.SaveChanges();
@@ -83,42 +83,6 @@ namespace CampaignManager.Services.Services
                 }
             }
         }
-
-        public async Task<CampaignContentResponse> GetAdminCampaignContent(Guid campaignId)
-        {
-             
-            var contents = await CampaignManagerContext.CampaignCategoryContentXrefs
-                .AsNoTracking()
-                .Where(c => c.CampaignId == campaignId)
-                .Select(c => new CampaignCategoryContentXref
-                {
-                    Id = c.Id,
-                    CampaignId = c.CampaignId,
-                    ParentContentId = c.ParentContentId,
-                    CreatorId = c.CreatorId,
-                    DisplayName = c.DisplayName,
-                    Description = c.Description,
-                    AccessHierarchyLevel = c.AccessHierarchyLevel,
-                    ContentLink = c.ContentLink,
-                    IconLink = c.IconLink,
-                    SimpleContent = c.SimpleContent,
-                    ContentType = c.ContentType
-                })
-                .ToListAsync();
-            var campaignPersonas = await CampaignManagerContext.CampaignPersonas
-                .AsNoTracking()
-                .Where(cp => cp.CampaignId == campaignId)
-                .ToListAsync();
-            var contentTypes = await CampaignManagerContext.ContentTypes
-                .AsNoTracking()
-                .ToListAsync();
-            var response = new CampaignContentResponse
-            {
-                CampaignContent = contents,
-                CampaignPersonas = campaignPersonas,
-                ContentTypes = contentTypes
-            };            
-            return response;
-        }
+       
     }
 }
