@@ -94,21 +94,5 @@ namespace api
                 return bad;
             }
         }
-
-        [Function("CampaignAdmin_GetContent")]
-        public async Task<HttpResponseData> GetAdminContent(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get",
-                         Route = "campaignadmin/{campaignId}/structure")]
-            HttpRequestData req,
-            string campaignId)
-        {
-            _log.LogInformation("Get Admin Content Function triggered (isolated worker).");
-
-            var response = await CampaignAdminService.GetAdminCampaignContent(Guid.Parse(campaignId));
-
-            var ok = req.CreateResponse(HttpStatusCode.OK);
-            await ok.WriteAsJsonAsync<CampaignContentResponse>(response);
-            return ok;
-        }
     }
 }

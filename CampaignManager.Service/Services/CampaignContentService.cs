@@ -15,33 +15,6 @@ namespace CampaignManager.Services.Services
             CampaignManagerContext = campaignManagerContext;
         }
 
-        public async Task<string> AddContent(CRUDContentRequest request)
-        {
-            try
-            {
-                CampaignCategoryContentXref entry = new CampaignCategoryContentXref
-                {
-                    Id = Guid.NewGuid(),
-                    CampaignId = request.CampaignId,
-                    ParentContentId = request.ParentContentId ?? null,
-                    CreatorId = request.CreatorId,
-                    DisplayName = request.DisplayName,
-                    Description = request.Description ?? null,
-                    AccessHierarchyLevel = request.AccessHierarchyLevel,
-                    ContentLink = request.ContentLink ?? null,
-                    IconLink = request.IconLink ?? null,
-                    SimpleContent = request.SimpleContent ?? null,
-                };
-                CampaignManagerContext.CampaignCategoryContentXrefs.Add(entry);
-                CampaignManagerContext.SaveChanges();
-
-                return "Success";
-            }
-            catch (Exception ex)
-            {
-                return "Failed.  " + ex.Message;
-            }
-        }
 
         public async Task<CampaignContentResponse> GetCampaignContent(Guid campaignId)
         {
@@ -61,17 +34,21 @@ namespace CampaignManager.Services.Services
                     ContentLink = c.ContentLink,
                     IconLink = c.IconLink,
                     SimpleContent = c.SimpleContent,
-                    ContentTypeId  = c.ContentTypeId
+                    ContentType = c.ContentType
                 })
                 .ToListAsync();
             var campaignPersonas = await CampaignManagerContext.CampaignPersonas
                 .AsNoTracking()
                 .Where(cp => cp.CampaignId == campaignId)
                 .ToListAsync();
+            var contentTypes = await CampaignManagerContext.ContentTypes
+                .AsNoTracking()
+                .ToListAsync();
             var response = new CampaignContentResponse
             {
                 CampaignContent = contents,
-                CampaignPersonas = campaignPersonas
+                CampaignPersonas = campaignPersonas,
+                ContentTypes = contentTypes
             };
             return response;
         }
