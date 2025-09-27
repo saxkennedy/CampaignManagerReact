@@ -19,7 +19,7 @@ namespace CampaignManager.Services.Models
         public string IconLink { get; set; }
         public string SimpleContent {  get; set; }
         public bool Delete { get; set; } = false;
-        public Guid ContentType { get; set; }
+        public Guid ContentTypeId { get; set; }
 
     }
 }

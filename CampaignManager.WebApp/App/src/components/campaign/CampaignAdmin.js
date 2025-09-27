@@ -25,7 +25,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import CampaignAdminService from '../../api/CampaignAdminService';
+import CampaignContentService from '../../api/CampaignContentService';
 
 const DEFAULT_ACCESS_LEVELS = [
     { value: 1, label: 'DM Only' },
@@ -133,10 +133,8 @@ const ContentTree = ({
                 const isExpanded = expandedIds.has(id);
                 const name = pick(item, 'DisplayName', 'displayName');
                 const lvl = pick(item, 'AccessHierarchyLevel', 'accessHierarchyLevel');
-                const ctId =
-                    pick(item, 'ContentTypeId', 'contentTypeId') ??
-                    pick(item, 'ContentType', 'contentType');
-                const ctName = contentTypeNameById.get(ctId) ?? (ctId ?? '—');
+                const contentType = pick(item, 'ContentType', 'contentType') ?? {};
+                const ctName = contentType.Type ?? "";
 
                 return (
                     <Box key={id} sx={{ pl: level * 2 }}>
@@ -309,7 +307,7 @@ const CampaignAdmin = ({ campaignId }) => {
         try {
             setLoading(true);
             setLoadError('');
-            const resp = await CampaignAdminService.getStructure(campaignId);
+            const resp = await CampaignContentService.getStructure(campaignId);
 
             const contents = pick(resp, 'CampaignContent', 'campaignContent') || [];
             const personas = pick(resp, 'CampaignPersonas', 'campaignPersonas') || [];
@@ -357,9 +355,7 @@ const CampaignAdmin = ({ campaignId }) => {
         setContentLink(pick(item, 'ContentLink', 'contentLink') || '');
         setIconLink(pick(item, 'IconLink', 'iconLink') || '');
         setSimpleContent(pick(item, 'SimpleContent', 'simpleContent') || '');
-        const ctId =
-            pick(item, 'ContentTypeId', 'contentTypeId') ??
-            pick(item, 'ContentType', 'contentType');
+        const ctId = pick(item.ContentType, 'Id', 'id')
         setContentTypeId(ctId ?? '');
         setShowForm(true);
         setSaveError('');
@@ -375,7 +371,7 @@ const CampaignAdmin = ({ campaignId }) => {
 
         try {
             setSaving(true);
-            const res = await CampaignAdminService.crudContent(campaignId, {
+            const res = await CampaignContentService.crudContent(campaignId, {
                 Id: id,
                 Delete: true,
             });
@@ -429,7 +425,7 @@ const CampaignAdmin = ({ campaignId }) => {
 
         try {
             setSaving(true);
-            const res = await CampaignAdminService.crudContent(campaignId, payload);
+            const res = await CampaignContentService.crudContent(campaignId, payload);
             const isSuccess =
                 (typeof res === 'string' && res.toLowerCase().startsWith('success')) ||
                 (typeof res === 'object' && res?.Success === true);
@@ -627,7 +623,7 @@ const CampaignAdmin = ({ campaignId }) => {
                                                 <Select
                                                     labelId="content-type-label"
                                                     label="Content Type"
-                                                    value={contentTypeId}
+                                                    value={contentTypeId}                                                    
                                                     onChange={(e) => setContentTypeId(e.target.value)}
                                                 >
                                                     {(data.contentTypes || []).map((ct) => {
