@@ -220,6 +220,12 @@ const realmsBetwixt = [
                                     'https://docs.google.com/document/d/1yO1MXgJpQ0tJ43vAJZ_OVqWqv1XfRZpA0Mz7HsRiWeQ/edit?usp=sharing',
                                 accessHierarchyLevel: 10,
                             },
+                            {
+                                displayName: 'Lurcher',
+                                contentLink:
+                                    'https://docs.google.com/document/d/1zIZ6DnqWAdBzpaFPIYcTmFRvgeFIHWKrvEzrW_RRjww/edit?usp=sharing',
+                                accessHierarchyLevel: 10
+                            }
                         ],
                     },
                 ],
