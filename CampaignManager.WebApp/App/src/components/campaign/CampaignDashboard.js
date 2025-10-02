@@ -279,6 +279,17 @@ const realmsBetwixt = [
         ],
     },
     {
+        displayName: 'Magic Items',
+        children: [
+            {
+                displayName: 'Bastion Briefcase',
+                contentLink:
+                    'https://docs.google.com/document/d/1B2uhBKH-VhmV1nJQTQtjoRt4rKifGYaS-xKXzBeCaxU/edit?usp=sharing',
+                accessHierarchyLevel: 10
+            },            
+        ],
+    },
+    {
         displayName: 'Maps',
         children: [
             { displayName: 'World Map', contentLink: '', accessHierarchyLevel: 10 },
