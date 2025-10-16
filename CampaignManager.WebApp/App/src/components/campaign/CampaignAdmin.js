@@ -26,6 +26,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CampaignContentService from '../../api/CampaignContentService';
+import CampaignAdminService from '../../api/CampaignAdminService';
 
 const DEFAULT_ACCESS_LEVELS = [
     { value: 1, label: 'DM Only' },
@@ -371,7 +372,7 @@ const CampaignAdmin = ({ campaignId }) => {
 
         try {
             setSaving(true);
-            const res = await CampaignContentService.crudContent(campaignId, {
+            const res = await CampaignAdminService.crudContent(campaignId, {
                 Id: id,
                 Delete: true,
             });
@@ -425,7 +426,7 @@ const CampaignAdmin = ({ campaignId }) => {
 
         try {
             setSaving(true);
-            const res = await CampaignContentService.crudContent(campaignId, payload);
+            const res = await CampaignAdminService.crudContent(campaignId, payload);
             const isSuccess =
                 (typeof res === 'string' && res.toLowerCase().startsWith('success')) ||
                 (typeof res === 'object' && res?.Success === true);

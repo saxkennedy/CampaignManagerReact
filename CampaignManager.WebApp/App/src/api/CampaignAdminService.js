@@ -16,13 +16,6 @@ async function handleResponse(res) {
 }
 
 class CampaignAdminService {
-    async getStructure(campaignId) {
-        const res = await Api.fetch(`/api/campaignadmin/${campaignId}/structure`, {
-            method: 'GET'
-        });
-        return res;
-    }
-
     async crudContent(campaignId, payload) {
         const res = await Api.fetch(`/api/campaignadmin/${campaignId}/content`, {
             method: 'POST',
@@ -31,10 +24,6 @@ class CampaignAdminService {
         });
         return res;
     }
-
-    // Optional future helpers:
-    // async updateContent(campaignId, contentId, payload) { ... }
-    // async deleteContent(campaignId, contentId) { ... }
 }
 
 export default new CampaignAdminService();
