@@ -59,10 +59,6 @@ export class App extends Component {
                             />
                         )}
                     </div>
-
-                    {/* Removed the old overlay block that rendered CampaignSideNav conditionally
-              to avoid duplicate rendering. The dashboard is now route-driven. */}
-
                     <Routes>
                         <Route
                             path="/login"
@@ -94,7 +90,6 @@ export class App extends Component {
                                 </div>
                             }
                         />
-                        {/* ⬅️ NEW: Campaign dashboard route */}
                         <Route
                             path="/campaigns/:campaignId"
                             element={
@@ -111,6 +106,39 @@ export class App extends Component {
                                 )
                             }
                         />
+                        <Route
+                            path="/campaigns/:campaignId/:contentId"
+                            element={
+                                this.state.user ? (
+                                    <div style={{ height: "96vh", width: "100vw", position: "relative", top: "4vh" }}>
+                                        <CampaignDashboard
+                                            user={this.state.user}
+                                            activeCampaignId={this.state.activeCampaignId}
+                                        />
+                                    </div>
+                                ) : (
+                                    <Navigate to="/login" />
+                                )
+                            }
+                        />
+                        {['items', 'npcs', 'shops'].map(seg => (
+                            <Route
+                                key={seg}
+                                path={`/campaigns/:campaignId/${seg}/:contentId`}
+                                element={
+                                    this.state.user ? (
+                                        <div style={{ height: "96vh", width: "100vw", position: "relative", top: "4vh" }}>
+                                            <CampaignDashboard
+                                                user={this.state.user}
+                                                activeCampaignId={this.state.activeCampaignId}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <Navigate to="/login" />
+                                    )
+                                }
+                            />
+                        ))}
                     </Routes>
                 </Router>
             </div>
