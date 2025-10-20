@@ -53,7 +53,7 @@ namespace CampaignManager.Services.Services
             }
             else
             {
-                return null; // or throw an exception, depending on your error handling strategy
+                return null;
             }
         }
     }
