@@ -46,7 +46,7 @@ const buildTree = (items) => {
 // categorize a node to decide URL segment (items/npcs/shops or none)
 const categorize = (raw) => {
     if (raw?.ContentType?.Type == "Item") return 'items';
-    if (raw?.ContentType?.Type == "NPC")  return 'npcs';
+    if (raw?.ContentType?.Type == "NPC") return 'npcs';
     if (raw?.ContentType?.Type == "Shop") return 'shops';
 
     return '';
@@ -92,15 +92,6 @@ const getUserHierarchyForCampaign = (user, campaignId) => {
     if (!user) return Infinity;
     if (user.isAdmin) return 1;
 
-    // DM persona shortcut: treat as level 1 (can see everything)
-    const isDM = user?.CampaignPersonas?.some(
-        (cp) =>
-            (!campaignId ||
-                cp.CampaignId?.toLowerCase() === campaignId?.toLowerCase()) &&
-            /dungeon\s*master/i.test(cp.CampaignPersonaName || '')
-    );
-    if (isDM) return 1;
-
     // Otherwise, take the minimum hierarchy number for this campaign (lower = more privileged)
     const levels = (user?.CampaignPersonas || [])
         .filter((cp) =>
@@ -145,15 +136,14 @@ export const CampaignDashboard = (props) => {
     const [expanded, setExpanded] = React.useState({});
     const [loading, setLoading] = React.useState(true);
 
-    // Permissions
-    const canAdmin =
-        !!user?.isAdmin ||
-        !!user?.CampaignPersonas?.some(
-            (cp) =>
-                (!campaignId ||
-                    cp.CampaignId?.toLowerCase() === campaignId?.toLowerCase()) &&
-                /dungeon\s*master/i.test(cp.CampaignPersonaName || '')
-        );
+    // Permissions:
+    // ✅ Campaign Administration should show for anyone who is Hierarchy 1 in the currently selected campaign.
+    const canAdmin = !!user?.CampaignPersonas?.some(
+        (cp) =>
+            (!campaignId ||
+                cp.CampaignId?.toLowerCase() === campaignId?.toLowerCase()) &&
+            Number(cp.Hierarchy) === 1
+    );
 
     const userHierarchy = React.useMemo(
         () => getUserHierarchyForCampaign(user, campaignId),
@@ -316,7 +306,7 @@ export const CampaignDashboard = (props) => {
                     boxSizing: 'border-box',
                 }}
             >
-                {/* Admin button (only for DMs/admins) */}
+                {/* Admin button (only for hierarchy 1 in this campaign) */}
                 {canAdmin && (
                     <ListItem
                         button
