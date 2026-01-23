@@ -13,6 +13,10 @@ public partial class Campaign
 
     public string Description { get; set; }
 
+    public string CampaignJoinPassword { get; set; }
+
+    public Guid? CampaignJoinPersonaId { get; set; }
+
     public virtual ICollection<CampaignCategoryContentXref> CampaignCategoryContentXrefs { get; set; } = new List<CampaignCategoryContentXref>();
 
     public virtual ICollection<CampaignPersona> CampaignPersonas { get; set; } = new List<CampaignPersona>();

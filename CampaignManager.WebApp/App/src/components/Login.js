@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Container, TextField, Button, Typography, Box, Alert } from '@mui/material';
 import UserService from '../api/UserService';
 
@@ -8,47 +8,36 @@ export const Login = (props) => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const returnTo = location.state?.returnTo || '/dashboard';
     const backgroundUrl = `url("https://lh3.googleusercontent.com/d/1_gpQmsPAeoSiolDu-NUdOWxDlbkdkPP3")`;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await UserService.GetUser(email, password);
-            if (res) {
-                props.setUser(res)
-                navigate('/dashboard');
+            const res = await UserService.Login(email, password); // ✅ token-aware
+            if (res?.user && res?.token) {
+                props.setUser(res.user);
+                UserService.setToken(res.token); // ✅ persist
+                navigate(returnTo, { replace: true });
             } else {
-                throw new Error('User Not Found');
+                throw new Error('Invalid login response');
             }
         } catch (err) {
             setError('Login failed');
         }
     };
 
-    // 👇 new function for Sign Up
     const handleSignUp = () => {
         navigate('/register');
     };
 
     return (
-        <div
-            style={{
-                backgroundImage: backgroundUrl,
-                backgroundSize: 'cover',
-                height: '100vh',
-                width: '100vw',
-            }}
-        >
+        <div style={{ backgroundImage: backgroundUrl, backgroundSize: 'cover', height: '100vh', width: '100vw' }}>
             <Container
                 maxWidth="md"
-                sx={{
-                    minHeight: '100%',
-                    minWidth: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    p: 0,
-                }}
+                sx={{ minHeight: '100%', minWidth: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 0 }}
             >
                 <Box
                     sx={{
@@ -63,58 +52,23 @@ export const Login = (props) => {
                         alignItems: 'center',
                     }}
                 >
-                    <Typography
-                        variant="h3"
-                        component="h1"
-                        gutterBottom
-                        sx={{
-                            fontWeight: 700,
-                            color: '#1976d2',
-                            mb: 2,
-                            textAlign: 'center',
-                        }}
-                    >
+                    <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 700, color: '#1976d2', mb: 2, textAlign: 'center' }}>
                         Ender's Campaign Manager (ALPHA)
                     </Typography>
-                    <Typography
-                        variant="h5"
-                        component="h2"
-                        gutterBottom
-                        sx={{ mb: 3, color: 'text.secondary' }}
-                    >
+
+                    <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3, color: 'text.secondary' }}>
                         Login to your account
                     </Typography>
 
                     <form onSubmit={handleSubmit} style={{ width: '100%' }}>
                         <Box sx={{ mb: 2 }}>
-                            <TextField
-                                fullWidth
-                                label="Email"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                variant="outlined"
-                            />
+                            <TextField fullWidth label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} variant="outlined" />
                         </Box>
                         <Box sx={{ mb: 2 }}>
-                            <TextField
-                                fullWidth
-                                label="Password"
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                variant="outlined"
-                            />
+                            <TextField fullWidth label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} variant="outlined" />
                         </Box>
 
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                            fullWidth
-                            size="large"
-                            sx={{ py: 1.5, fontWeight: 600 }}
-                        >
+                        <Button type="submit" variant="contained" color="primary" fullWidth size="large" sx={{ py: 1.5, fontWeight: 600 }}>
                             Login
                         </Button>
 
@@ -124,14 +78,8 @@ export const Login = (props) => {
                             </Box>
                         )}
                     </form>
-                    <Button
-                        onClick={handleSignUp}
-                        variant="outlined"
-                        color="secondary"
-                        fullWidth
-                        size="large"
-                        sx={{ mt: 2, py: 1.5, fontWeight: 600 }}
-                    >
+
+                    <Button onClick={handleSignUp} variant="outlined" color="secondary" fullWidth size="large" sx={{ mt: 2, py: 1.5, fontWeight: 600 }}>
                         Sign Up
                     </Button>
                 </Box>

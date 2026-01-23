@@ -1,7 +1,7 @@
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=tcp:DESKTOP-RIF19K0\\ENDERDND22,49172; Initial Catalog=CampaignManager; User ID=CampaignManagerReact; Password=***REMOVED***; TrustServerCertificate=True",
-   // "DefaultConnection": "Server=tcp:DESKTOP-RIF19K0\\ENDERDND22,49172; Initial Catalog=CampaignManager; User ID=CampaignManagerReact; Password=***REMOVED***; TrustServerCertificate=True"
-
+    "DefaultConnection": "Server=tcp:50.106.117.240,49172;Initial Catalog=CampaignManager;User ID=CampaignManagerReact;Password=***REMOVED***;Encrypt=True;TrustServerCertificate=True;"
   }
 }
+ // "DefaultConnection": "Server=tcp:DESKTOP-RIF19K0\\ENDERDND22,49172; Initial Catalog=CampaignManager; User ID=CampaignManagerReact; Password=***REMOVED***; TrustServerCertificate=True",
+  // "DefaultConnection": "Server=tcp:DESKTOP-RIF19K0\\ENDERDND22,49172; Initial Catalog=CampaignManager; User ID=CampaignManagerReact; Password=***REMOVED***; TrustServerCertificate=True"
