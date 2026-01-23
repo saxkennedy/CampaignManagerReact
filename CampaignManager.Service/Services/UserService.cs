@@ -2,6 +2,7 @@
 using CampaignManager.Services.Services.Abstractions;
 using Data.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Threading.Tasks;
 
 namespace CampaignManager.Services.Services
@@ -23,38 +24,51 @@ namespace CampaignManager.Services.Services
                 FirstName = createUser.FirstName,
                 LastName = createUser.LastName,
                 Password = createUser.Password,
-                UserName = createUser.Email, // Assuming UserName is the same as Email
+                UserName = createUser.Email,
                 DateAdded = DateTime.UtcNow,
                 PersonaId = Guid.Parse("B6A68383-8651-406B-AC27-465CFD11A449")
             };
+
             CampaignManagerContext.Users.Add(newUser);
-            CampaignManagerContext.SaveChanges();
-            var user = await GetUser(createUser.Email, createUser.Password);
-            return user;
+            await CampaignManagerContext.SaveChangesAsync();
+
+            // Return full user response
+            return await GetUser(createUser.Email, createUser.Password);
         }
 
         public async Task<UserResponse> GetUser(string email, string password)
         {
             var response = await CampaignManagerContext.Users
                 .FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
-            if (response != null)
-            {                 
-                var userResponse =  new UserResponse
-                {
-                    Id = response.Id,
-                    Email = response.Email,
-                    FirstName = response.FirstName,
-                    LastName = response.LastName,
-                    Persona= response.PersonaId.ToString(),
-                    CampaignPersonas = await CampaignManagerContext.Procedures.GetCampaignPersonaAsync(response.Id)                  
-                }; ;
 
-                return userResponse;
-            }
-            else
+            if (response == null) return null;
+
+            return await BuildUserResponse(response);
+        }
+
+        public async Task<UserResponse> GetUserById(Guid userId)
+        {
+            var response = await CampaignManagerContext.Users
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (response == null) return null;
+
+            return await BuildUserResponse(response);
+        }
+
+        private async Task<UserResponse> BuildUserResponse(User user)
+        {
+            return new UserResponse
             {
-                return null;
-            }
+                Id = user.Id,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Persona = user.PersonaId.ToString(),
+
+                // ✅ This is the critical part that restores access after refresh
+                CampaignPersonas = await CampaignManagerContext.Procedures.GetCampaignPersonaAsync(user.Id)
+            };
         }
     }
 }

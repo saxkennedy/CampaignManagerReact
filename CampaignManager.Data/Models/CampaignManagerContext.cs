@@ -34,6 +34,7 @@ public partial class CampaignManagerContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__Campaign__3214EC07783CDB57");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.CampaignJoinPassword).HasMaxLength(120);
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(250);

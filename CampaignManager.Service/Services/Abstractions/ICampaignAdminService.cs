@@ -4,6 +4,7 @@ namespace CampaignManager.Services.Services.Abstractions
 {
     public interface ICampaignAdminService
     {
-        public Task<string> CRUDContent(CRUDContentRequest createUser);
+        Task<string> CRUDContent(CRUDContentRequest createUser);
+        Task<CreateCampaignResponse> CreateCampaign(Guid creatorUserId, CampaignUpsertRequest request);
     }
 }

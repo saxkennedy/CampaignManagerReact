@@ -7,5 +7,6 @@ namespace CampaignManager.Services.Services.Abstractions
     {
         public Task<UserResponse> CreateUser(NewUserRequest user);
         public Task<UserResponse> GetUser(string email, string password);
+        Task<UserResponse> GetUserById(Guid userId);
     }
 }
