@@ -188,7 +188,7 @@ export default function CreateCampaign(props) {
         if (!exists || Number(joinHierarchy) === 1) {
             setJoinHierarchy(Number(nonCreator[0].hierarchy));
         }
-    }, [personas]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [personas, joinHierarchy]);
 
     return (
         <Box sx={{ p: 3 }} component="form" autoComplete="off">
