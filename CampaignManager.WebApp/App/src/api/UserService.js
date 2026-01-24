@@ -1,62 +1,77 @@
+const TOKEN_KEY = "authToken";
+const LAST_ACTIVITY_KEY = "lastActivityUtc";
+const FOUR_HOURS_MS = 4 * 60 * 60 * 1000;
+
+function now() {
+    return Date.now();
+}
+
+async function safeJson(res) {
+    try {
+        return await res.json();
+    } catch {
+        return null;
+    }
+}
+
+// Normalize different backend shapes:
+// - { user, token }
+// - { User, Token }
+// - direct user object
+function extractUser(data) {
+    if (!data) return null;
+    return data.user ?? data.User ?? data;
+}
+
+function extractToken(data) {
+    if (!data) return null;
+    return data.token ?? data.Token ?? null;
+}
+
 class UserService {
-    static TOKEN_KEY = "authToken";
-    static LAST_ACTIVITY_KEY = "lastActivityUtcMs";
-    static IDLE_LIMIT_MS = 4 * 60 * 60 * 1000; // 4 hours
+    getToken() {
+        return localStorage.getItem(TOKEN_KEY);
+    }
 
     setToken(token) {
-        localStorage.setItem(UserService.TOKEN_KEY, token);
+        localStorage.setItem(TOKEN_KEY, token);
         this.updateLastActivity();
     }
 
     clearToken() {
-        localStorage.removeItem(UserService.TOKEN_KEY);
-        localStorage.removeItem(UserService.LAST_ACTIVITY_KEY);
-    }
-
-    getToken() {
-        return localStorage.getItem(UserService.TOKEN_KEY);
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(LAST_ACTIVITY_KEY);
     }
 
     updateLastActivity() {
-        localStorage.setItem(UserService.LAST_ACTIVITY_KEY, String(Date.now()));
+        localStorage.setItem(LAST_ACTIVITY_KEY, String(now()));
     }
 
     isIdleExpired() {
-        const raw = localStorage.getItem(UserService.LAST_ACTIVITY_KEY);
-        if (!raw) return false; // if never set, don't immediately expire
-        const last = Number(raw);
-        if (!Number.isFinite(last)) return false;
-        return (Date.now() - last) > UserService.IDLE_LIMIT_MS;
+        const v = localStorage.getItem(LAST_ACTIVITY_KEY);
+        if (!v) return false;
+        const last = Number(v);
+        return Number.isFinite(last) && (now() - last > FOUR_HOURS_MS);
     }
 
     async authFetch(url, options = {}) {
-        const token = this.getToken();
-
-        // If token exists but user has been idle too long, clear token and block.
-        if (token && this.isIdleExpired()) {
+        if (this.isIdleExpired()) {
             this.clearToken();
-            throw new Error("Session expired due to inactivity.");
+            const err = new Error("Session expired due to inactivity");
+            err.status = 401;
+            throw err;
         }
 
+        const token = this.getToken();
         const headers = { ...(options.headers || {}) };
 
-        // Only set JSON content-type when we have a body and caller didn't override it
-        if (options.body && !headers["Content-Type"]) {
-            headers["Content-Type"] = "application/json";
-        }
-
-        if (token) {
-            headers["Authorization"] = `Bearer ${token}`;
-        }
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+        if (options.body && !headers["Content-Type"]) headers["Content-Type"] = "application/json";
 
         const res = await fetch(url, { ...options, headers });
 
-        // Update activity on successful calls
-        if (res.ok) {
-            this.updateLastActivity();
-        }
+        if (res.ok) this.updateLastActivity();
 
-        // If unauthorized, clear token so the app will force login
         if (res.status === 401) {
             this.clearToken();
         }
@@ -76,53 +91,98 @@ class UserService {
             })
         });
 
-        const result = await res.json().catch(() => null);
-        if (!res.ok) throw new Error(result?.message || "CreateUser failed");
-        return result;
+        const data = await safeJson(res);
+        if (!res.ok) throw new Error(data?.error || data?.message || "CreateUser failed");
+        return extractUser(data) ?? data;
     }
 
+    // Your Login component calls GetUser(email,password)
     async GetUser(email, password) {
-        const response = await fetch('/api/login', {
+        return this.Login(email, password);
+    }
+
+    async Login(email, password) {
+        const res = await fetch('/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
 
-        const result = await response.json().catch(() => null);
+        const data = await safeJson(res);
+        if (!res.ok) throw new Error(data?.error || data?.message || "Login failed");
 
-        if (!response.ok) {
-            throw new Error(result?.message || "Login failed");
-        }
-
-        // Store token for refresh/deep link
-        const token = result?.token ?? result?.Token;
+        // Store token if returned
+        const token = extractToken(data);
         if (token) this.setToken(token);
 
-        return result;
+        // ? IMPORTANT: return the user object (so the rest of the app works)
+        const user = extractUser(data);
+        return user ?? data;
     }
 
     async Me() {
         const res = await this.authFetch('/api/me', { method: "GET" });
-        const data = await res.json().catch(() => null);
-        if (!res.ok) throw new Error(data?.message || "Me failed");
-        return data;
+        const data = await safeJson(res);
+        if (!res.ok) throw new Error(data?.error || data?.message || "Not authenticated");
+
+        // Me should already be a user; normalize anyway
+        return extractUser(data) ?? data;
     }
 
     async ListJoinableCampaigns() {
         const res = await this.authFetch('/api/campaigns/joinable', { method: "GET" });
-        const data = await res.json().catch(() => null);
-        if (!res.ok) throw new Error(data?.message || "Failed to load joinable campaigns");
+        const data = await safeJson(res);
+        if (!res.ok) throw new Error(data?.error || data?.message || "Failed to load campaigns");
+        return data;
+    }
+
+    async CreateCampaign(payload) {
+        const res = await this.authFetch("/api/campaigns", {
+            method: "POST",
+            body: JSON.stringify(payload)
+        });
+
+        const data = await safeJson(res);
+
+        if (!res.ok) {
+            const msg = data?.error || data?.message || `Failed to create campaign (${res.status})`;
+            const err = new Error(msg);
+            err.status = res.status;
+            throw err;
+        }
+
         return data;
     }
 
     async JoinCampaign(campaignId, password) {
-        const res = await this.authFetch('/api/campaigns/join', {
+        const body = password ? { password } : {};
+
+        const res = await this.authFetch(`/api/campaigns/${campaignId}/join`, {
             method: "POST",
-            body: JSON.stringify({ campaignId, password })
+            body: JSON.stringify(body)
         });
-        const data = await res.json().catch(() => null);
-        if (!res.ok) throw new Error(data?.message || "Failed to join campaign");
-        return data;
+
+        const payload = await safeJson(res);
+
+        if (res.status === 403) {
+            const err = new Error(payload?.error || payload?.message || "Incorrect password.");
+            err.status = 403;
+            throw err;
+        }
+
+        if (!res.ok) {
+            const err = new Error(payload?.error || payload?.message || "Failed to join campaign.");
+            err.status = res.status;
+            throw err;
+        }
+
+        if (!payload || payload.joined !== true) {
+            const err = new Error(payload?.error || payload?.message || "Join was not completed.");
+            err.status = 400;
+            throw err;
+        }
+
+        return payload;
     }
 }
 

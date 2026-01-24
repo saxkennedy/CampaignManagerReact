@@ -10,14 +10,16 @@
       "methods": [ "POST" ]
     },
     {
+      "route": "/api/createUser",
+      "allowedRoles": [ "anonymous" ],
+      "methods": [ "POST" ]
+    },
+    {
       "route": "/api/*",
       "allowedRoles": [ "anonymous" ]
     }
   ],
   "responseOverrides": {
-    "401": {
-      "rewrite": "/unauthorized.html"
-    },
     "404": {
       "rewrite": "/404.html"
     }
