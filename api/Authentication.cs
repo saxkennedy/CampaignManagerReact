@@ -65,23 +65,42 @@ namespace api.Authentication
                 audience: "enderdnd",
                 claims: claims,
                 notBefore: DateTime.UtcNow,
-                expires: DateTime.UtcNow.AddHours(6), 
+                expires: DateTime.UtcNow.AddHours(6),
                 signingCredentials: creds
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        /// <summary>
+        /// IMPORTANT:
+        /// Azure Static Web Apps can strip/override the standard "Authorization" header when proxying /api requests.
+        /// So we also accept a custom header "X-Ender-Auth" that SWA passes through.
+        /// </summary>
         private static ClaimsPrincipal? ValidateJwt(HttpRequestData req)
         {
-            if (!req.Headers.TryGetValues("Authorization", out var authHeaders))
-                return null;
+            string? token = null;
 
-            var auth = authHeaders.FirstOrDefault();
-            if (string.IsNullOrWhiteSpace(auth) || !auth.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-                return null;
+            // Prefer the custom header first
+            if (req.Headers.TryGetValues("X-Ender-Auth", out var xauthHeaders))
+            {
+                token = xauthHeaders.FirstOrDefault();
+            }
 
-            var token = auth.Substring("Bearer ".Length).Trim();
+            // Fall back to standard Authorization: Bearer <token>
+            if (string.IsNullOrWhiteSpace(token) && req.Headers.TryGetValues("Authorization", out var authHeaders))
+            {
+                var auth = authHeaders.FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(auth) && auth.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                    token = auth.Substring("Bearer ".Length).Trim();
+            }
+
+            // Allow callers to mistakenly include "Bearer " in the custom header too
+            if (!string.IsNullOrWhiteSpace(token) && token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                token = token.Substring("Bearer ".Length).Trim();
+
+            if (string.IsNullOrWhiteSpace(token))
+                return null;
 
             var secret = Environment.GetEnvironmentVariable("JwtSecret");
             if (string.IsNullOrWhiteSpace(secret) || secret.Length < 32)

@@ -65,24 +65,39 @@ class UserService {
         const token = this.getToken();
         const headers = { ...(options.headers || {}) };
 
-        if (token) headers["Authorization"] = `Bearer ${token}`;
+        // IMPORTANT:
+        // Azure Static Web Apps can strip/override the standard Authorization header
+        // when proxying /api calls. Use a custom header that SWA will pass through.
+        if (token) {
+            headers["X-Ender-Auth"] = token;
+
+            // Keep this for local dev / non-SWA environments (harmless if stripped in prod)
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+
         if (options.body && !headers["Content-Type"]) headers["Content-Type"] = "application/json";
 
         const res = await fetch(url, { ...options, headers });
 
         if (res.ok) this.updateLastActivity();
 
+        // Don't automatically clear token on every 401.
+        // If SWA strips headers (or a transient issue occurs), clearing the token causes
+        // the next calls to have no auth header, which matches the behavior you're seeing.
         if (res.status === 401) {
-            this.clearToken();
+            // If the "me" endpoint says 401, token truly isn't valid anymore.
+            if (String(url).includes("/api/me")) {
+                this.clearToken();
+            }
         }
 
         return res;
     }
 
     async CreateUser(user) {
-        const res = await fetch('/api/createUser', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch("/api/createUser", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 Email: user.Email,
                 Password: user.Password,
@@ -102,9 +117,9 @@ class UserService {
     }
 
     async Login(email, password) {
-        const res = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch("/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password })
         });
 
@@ -115,22 +130,20 @@ class UserService {
         const token = extractToken(data);
         if (token) this.setToken(token);
 
-        // ? IMPORTANT: return the user object (so the rest of the app works)
+        // IMPORTANT: return the user object (so the rest of the app works)
         const user = extractUser(data);
         return user ?? data;
     }
 
     async Me() {
-        const res = await this.authFetch('/api/me', { method: "GET" });
+        const res = await this.authFetch("/api/me", { method: "GET" });
         const data = await safeJson(res);
         if (!res.ok) throw new Error(data?.error || data?.message || "Not authenticated");
-
-        // Me should already be a user; normalize anyway
         return extractUser(data) ?? data;
     }
 
     async ListJoinableCampaigns() {
-        const res = await this.authFetch('/api/campaigns/joinable', { method: "GET" });
+        const res = await this.authFetch("/api/campaigns/joinable", { method: "GET" });
         const data = await safeJson(res);
         if (!res.ok) throw new Error(data?.error || data?.message || "Failed to load campaigns");
         return data;
