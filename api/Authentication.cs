@@ -65,7 +65,7 @@ namespace api.Authentication
                 audience: "enderdnd",
                 claims: claims,
                 notBefore: DateTime.UtcNow,
-                expires: DateTime.UtcNow.AddHours(4), // ✅ 4 hours total lifetime
+                expires: DateTime.UtcNow.AddHours(6), 
                 signingCredentials: creds
             );
 

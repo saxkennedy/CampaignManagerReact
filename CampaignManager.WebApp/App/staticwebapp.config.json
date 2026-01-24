@@ -8,6 +8,10 @@
       "route": "/api/login",
       "allowedRoles": [ "anonymous" ],
       "methods": [ "POST" ]
+    },
+    {
+      "route": "/api/*",
+      "allowedRoles": [ "anonymous" ]
     }
   ],
   "responseOverrides": {
