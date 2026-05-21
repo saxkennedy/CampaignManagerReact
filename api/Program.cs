@@ -17,7 +17,7 @@ var host = new HostBuilder()
         // EF Core DbContext used by your Services layer
         services.AddDbContext<CampaignManagerContext>(opts => opts.UseSqlServer(cs));
 
-        // Register your service so LoginFunction can get IUserService in its ctor
+        // Register your service so LoginFunction can get IUserService in its ctortting 
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ICampaignAdminService, CampaignAdminService>();
         services.AddScoped<ICampaignContentService, CampaignContentService>();

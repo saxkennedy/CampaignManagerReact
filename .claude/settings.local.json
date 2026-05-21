@@ -5,7 +5,8 @@
       "Bash(Select-Object Name)",
       "PowerShell(Invoke-WebRequest -Uri \"https://drive.google.com/uc?export=view&id=1_gpQmsPAeoSiolDu-NUdOWxDlbkdkPP3\" -OutFile \"CampaignManager.WebApp\\\\App\\\\public\\\\img\\\\LoginBackground.jpg\" -UseBasicParsing; Write-Output \"Login done: $\\(\\(Get-Item 'CampaignManager.WebApp\\\\App\\\\public\\\\img\\\\LoginBackground.jpg'\\).Length\\) bytes\")",
       "PowerShell(Invoke-WebRequest -Uri \"https://drive.google.com/uc?export=view&id=1K3a6x-eXhCUV4Bu8t5COS_z1KjRhOP5K\" -OutFile \"CampaignManager.WebApp\\\\App\\\\public\\\\img\\\\DashboardBackground.jpg\" -UseBasicParsing; Write-Output \"Dashboard done: $\\(\\(Get-Item 'CampaignManager.WebApp\\\\App\\\\public\\\\img\\\\DashboardBackground.jpg'\\).Length\\) bytes\")",
-      "Bash(dotnet add *)"
+      "Bash(dotnet add *)",
+      "Bash(git rm *)"
     ]
   }
 }
