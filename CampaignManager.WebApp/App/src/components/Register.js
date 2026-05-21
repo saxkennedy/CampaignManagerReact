@@ -24,12 +24,8 @@ export const Register = (props) => {
     }
     var userRequest = { Email: email, Password: password, FirstName: firstName, LastName: lastName };
     try {
-      const res = await UserService.CreateUser(userRequest);
-      if (res) {
-        navigate('/login'); // Redirect to login screen after successful registration
-      } else {
-        throw new Error("User creation failed");
-      }
+      await UserService.CreateUser(userRequest);
+      navigate('/verify', { state: { email } });
     } catch (err) {
       setError(err.message);
     }

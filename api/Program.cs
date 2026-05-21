@@ -1,4 +1,5 @@
 ﻿using System;
+using api;
 using CampaignManager.Services.Services;                // UserService (impl)
 using CampaignManager.Services.Services.Abstractions;  // IUserService (interface)
 using Data.Models;                                     // CampaignManagerContext
@@ -20,6 +21,7 @@ var host = new HostBuilder()
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ICampaignAdminService, CampaignAdminService>();
         services.AddScoped<ICampaignContentService, CampaignContentService>();
+        services.AddScoped<IEmailService, SmtpEmailService>();
         
         services.AddHttpClient(); // ✅ enables IHttpClientFactory
         // services.AddHttpClient("google", c => { c.Timeout = TimeSpan.FromSeconds(15); });

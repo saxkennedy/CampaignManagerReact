@@ -1,4 +1,4 @@
-﻿using CampaignManager.Services.Models;
+using CampaignManager.Services.Models;
 using CampaignManager.Services.Services.Abstractions;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -19,11 +19,13 @@ namespace api.Authentication
     public class AuthFunctions
     {
         private readonly IUserService userService;
+        private readonly IEmailService emailService;
         private readonly ILogger<AuthFunctions> _log;
 
-        public AuthFunctions(IUserService users, ILogger<AuthFunctions> log)
+        public AuthFunctions(IUserService users, IEmailService email, ILogger<AuthFunctions> log)
         {
             userService = users;
+            emailService = email;
             _log = log;
         }
 
@@ -43,6 +45,35 @@ namespace api.Authentication
         {
             public string? Email { get; set; }
             public string? Password { get; set; }
+        }
+
+        private sealed class VerifyEmailRequest
+        {
+            public string? Email { get; set; }
+            public string? Code { get; set; }
+        }
+
+        private sealed class ResendRequest
+        {
+            public string? Email { get; set; }
+        }
+
+        private sealed class ForgotPasswordRequest
+        {
+            public string? Email { get; set; }
+        }
+
+        private sealed class ResetPasswordRequest
+        {
+            public string? Email { get; set; }
+            public string? Code { get; set; }
+            public string? NewPassword { get; set; }
+        }
+
+        private sealed class ChangePasswordRequest
+        {
+            public string? CurrentPassword { get; set; }
+            public string? NewPassword { get; set; }
         }
 
         private static string GenerateJwt(UserResponse user)
@@ -73,21 +104,16 @@ namespace api.Authentication
         }
 
         /// <summary>
-        /// IMPORTANT:
         /// Azure Static Web Apps can strip/override the standard "Authorization" header when proxying /api requests.
-        /// So we also accept a custom header "X-Ender-Auth" that SWA passes through.
+        /// We also accept a custom header "X-Ender-Auth" that SWA passes through.
         /// </summary>
         private static ClaimsPrincipal? ValidateJwt(HttpRequestData req)
         {
             string? token = null;
 
-            // Prefer the custom header first
             if (req.Headers.TryGetValues("X-Ender-Auth", out var xauthHeaders))
-            {
                 token = xauthHeaders.FirstOrDefault();
-            }
 
-            // Fall back to standard Authorization: Bearer <token>
             if (string.IsNullOrWhiteSpace(token) && req.Headers.TryGetValues("Authorization", out var authHeaders))
             {
                 var auth = authHeaders.FirstOrDefault();
@@ -95,7 +121,6 @@ namespace api.Authentication
                     token = auth.Substring("Bearer ".Length).Trim();
             }
 
-            // Allow callers to mistakenly include "Bearer " in the custom header too
             if (!string.IsNullOrWhiteSpace(token) && token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                 token = token.Substring("Bearer ".Length).Trim();
 
@@ -145,6 +170,13 @@ namespace api.Authentication
             if (user == null)
                 return req.CreateResponse(HttpStatusCode.Unauthorized);
 
+            if (!user.IsVerified)
+            {
+                var forbidden = req.CreateResponse(HttpStatusCode.Forbidden);
+                await forbidden.WriteAsJsonAsync(new { error = "Please verify your email before logging in.", unverified = true });
+                return forbidden;
+            }
+
             var token = GenerateJwt(user);
 
             var ok = req.CreateResponse(HttpStatusCode.OK);
@@ -178,19 +210,210 @@ namespace api.Authentication
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "createUser")] HttpRequestData req)
         {
             var create = await ReadBodyAsync<NewUserRequest>(req);
-            if (create == null)
+            if (create == null || string.IsNullOrWhiteSpace(create.Email) || string.IsNullOrWhiteSpace(create.Password))
             {
                 var bad = req.CreateResponse(HttpStatusCode.BadRequest);
-                await bad.WriteAsJsonAsync(new { error = "Invalid body." });
+                await bad.WriteAsJsonAsync(new { error = "Email and password are required." });
                 return bad;
             }
 
-            var user = await userService.CreateUser(create);
-            var token = GenerateJwt(user);
+            UserResponse user;
+            try
+            {
+                user = await userService.CreateUser(create);
+            }
+            catch (InvalidOperationException ex)
+            {
+                var conflict = req.CreateResponse(HttpStatusCode.Conflict);
+                await conflict.WriteAsJsonAsync(new { error = ex.Message });
+                return conflict;
+            }
 
-            var created = req.CreateResponse(HttpStatusCode.Created);
-            await created.WriteAsJsonAsync(new { user, token });
-            return created;
+            var code = await userService.CreateVerificationCode(user.Id);
+
+            try
+            {
+                await emailService.SendVerificationEmailAsync(create.Email, code);
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, "Failed to send verification email to {Email}", create.Email);
+                await userService.DeleteUser(user.Id);
+                var err = req.CreateResponse(HttpStatusCode.InternalServerError);
+                await err.WriteAsJsonAsync(new { error = "Failed to send verification email. Please try again." });
+                return err;
+            }
+
+            var ok = req.CreateResponse(HttpStatusCode.OK);
+            await ok.WriteAsJsonAsync(new { email = create.Email });
+            return ok;
+        }
+
+        [Function("VerifyEmail")]
+        public async Task<HttpResponseData> VerifyEmail(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "verifyEmail")] HttpRequestData req)
+        {
+            var body = await ReadBodyAsync<VerifyEmailRequest>(req);
+            if (body == null || string.IsNullOrWhiteSpace(body.Email) || string.IsNullOrWhiteSpace(body.Code))
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                await bad.WriteAsJsonAsync(new { error = "Email and code are required." });
+                return bad;
+            }
+
+            var verified = await userService.VerifyUser(body.Email, body.Code);
+            if (!verified)
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                await bad.WriteAsJsonAsync(new { error = "Invalid or expired code." });
+                return bad;
+            }
+
+            return req.CreateResponse(HttpStatusCode.OK);
+        }
+
+        [Function("ChangePassword")]
+        public async Task<HttpResponseData> ChangePassword(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "changePassword")] HttpRequestData req)
+        {
+            var principal = ValidateJwt(req);
+            if (principal == null)
+                return req.CreateResponse(HttpStatusCode.Unauthorized);
+
+            var idStr = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(idStr, out var userId))
+                return req.CreateResponse(HttpStatusCode.Unauthorized);
+
+            var body = await ReadBodyAsync<ChangePasswordRequest>(req);
+            if (body == null || string.IsNullOrWhiteSpace(body.CurrentPassword) || string.IsNullOrWhiteSpace(body.NewPassword))
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                await bad.WriteAsJsonAsync(new { error = "Current and new password are required." });
+                return bad;
+            }
+
+            var success = await userService.ChangePassword(userId, body.CurrentPassword, body.NewPassword);
+            if (!success)
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                await bad.WriteAsJsonAsync(new { error = "Current password is incorrect." });
+                return bad;
+            }
+
+            return req.CreateResponse(HttpStatusCode.OK);
+        }
+
+        [Function("VerifyResetCode")]
+        public async Task<HttpResponseData> VerifyResetCode(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "verifyResetCode")] HttpRequestData req)
+        {
+            var body = await ReadBodyAsync<VerifyEmailRequest>(req);
+            if (body == null || string.IsNullOrWhiteSpace(body.Email) || string.IsNullOrWhiteSpace(body.Code))
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                await bad.WriteAsJsonAsync(new { error = "Email and code are required." });
+                return bad;
+            }
+
+            var valid = await userService.IsResetCodeValid(body.Email, body.Code);
+            if (!valid)
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                await bad.WriteAsJsonAsync(new { error = "Invalid or expired code." });
+                return bad;
+            }
+
+            return req.CreateResponse(HttpStatusCode.OK);
+        }
+
+        [Function("ForgotPassword")]
+        public async Task<HttpResponseData> ForgotPassword(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "forgotPassword")] HttpRequestData req)
+        {
+            var body = await ReadBodyAsync<ForgotPasswordRequest>(req);
+            if (body == null || string.IsNullOrWhiteSpace(body.Email))
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                await bad.WriteAsJsonAsync(new { error = "Email is required." });
+                return bad;
+            }
+
+            var user = await userService.GetUserByEmail(body.Email);
+            if (user != null)
+            {
+                var code = await userService.CreatePasswordResetCode(user.Id);
+                try
+                {
+                    await emailService.SendPasswordResetEmailAsync(body.Email, code);
+                }
+                catch (Exception ex)
+                {
+                    _log.LogError(ex, "Failed to send password reset email to {Email}", body.Email);
+                }
+            }
+
+            // Always return OK — don't leak whether the email exists
+            return req.CreateResponse(HttpStatusCode.OK);
+        }
+
+        [Function("ResetPassword")]
+        public async Task<HttpResponseData> ResetPassword(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "resetPassword")] HttpRequestData req)
+        {
+            var body = await ReadBodyAsync<ResetPasswordRequest>(req);
+            if (body == null || string.IsNullOrWhiteSpace(body.Email) ||
+                string.IsNullOrWhiteSpace(body.Code) || string.IsNullOrWhiteSpace(body.NewPassword))
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                await bad.WriteAsJsonAsync(new { error = "Email, code, and new password are required." });
+                return bad;
+            }
+
+            var success = await userService.ResetPassword(body.Email, body.Code, body.NewPassword);
+            if (!success)
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                await bad.WriteAsJsonAsync(new { error = "Invalid or expired code." });
+                return bad;
+            }
+
+            return req.CreateResponse(HttpStatusCode.OK);
+        }
+
+        [Function("ResendVerification")]
+        public async Task<HttpResponseData> ResendVerification(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "resendVerification")] HttpRequestData req)
+        {
+            var body = await ReadBodyAsync<ResendRequest>(req);
+            if (body == null || string.IsNullOrWhiteSpace(body.Email))
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                await bad.WriteAsJsonAsync(new { error = "Email is required." });
+                return bad;
+            }
+
+            var user = await userService.GetUnverifiedUser(body.Email);
+            if (user == null)
+            {
+                // Return OK regardless — don't leak whether the email exists
+                return req.CreateResponse(HttpStatusCode.OK);
+            }
+
+            var code = await userService.CreateVerificationCode(user.Id);
+
+            try
+            {
+                await emailService.SendVerificationEmailAsync(body.Email, code);
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, "Failed to resend verification email to {Email}", body.Email);
+                var err = req.CreateResponse(HttpStatusCode.InternalServerError);
+                await err.WriteAsJsonAsync(new { error = "Failed to send email. Please try again." });
+                return err;
+            }
+
+            return req.CreateResponse(HttpStatusCode.OK);
         }
     }
 }

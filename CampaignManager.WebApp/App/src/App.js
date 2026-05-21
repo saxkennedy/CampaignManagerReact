@@ -1,6 +1,10 @@
 ﻿import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Register from './components/Register';
+import VerifyEmail from './components/VerifyEmail';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
+import ChangePassword from './components/ChangePassword';
 import Dashboard from './components/Dashboard';
 import Navigation from './components/Navigation';
 import CampaignDashboard from './components/campaign/CampaignDashboard';
@@ -129,6 +133,18 @@ export class App extends Component {
                         />
 
                         <Route path="/register" element={<Register setUser={this.setUser} />} />
+
+                        <Route path="/verify" element={<VerifyEmail />} />
+                        <Route path="/forgot-password" element={<ForgotPassword />} />
+                        <Route path="/reset-password" element={<ResetPassword />} />
+                        <Route
+                            path="/change-password"
+                            element={
+                                <ProtectedRoute user={this.state.user} isLoading={this.state.fetching}>
+                                    <ChangePassword />
+                                </ProtectedRoute>
+                            }
+                        />
 
                         <Route
                             path="/dashboard"

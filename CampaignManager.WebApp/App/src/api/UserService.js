@@ -124,7 +124,14 @@ class UserService {
         });
 
         const data = await safeJson(res);
-        if (!res.ok) throw new Error(data?.error || data?.message || "Login failed");
+        if (!res.ok) {
+            const err = new Error(data?.error || data?.message || "Login failed");
+            if (res.status === 403 && data?.unverified) {
+                err.unverified = true;
+                err.email = email;
+            }
+            throw err;
+        }
 
         // Store token if returned
         const token = extractToken(data);
@@ -133,6 +140,71 @@ class UserService {
         // IMPORTANT: return the user object (so the rest of the app works)
         const user = extractUser(data);
         return user ?? data;
+    }
+
+    async ChangePassword(currentPassword, newPassword) {
+        const res = await this.authFetch("/api/changePassword", {
+            method: "POST",
+            body: JSON.stringify({ currentPassword, newPassword })
+        });
+        const data = await safeJson(res);
+        if (!res.ok) throw new Error(data?.error || data?.message || "Change password failed");
+        return data;
+    }
+
+    async ForgotPassword(email) {
+        const res = await fetch("/api/forgotPassword", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email })
+        });
+        const data = await safeJson(res);
+        if (!res.ok) throw new Error(data?.error || data?.message || "Request failed");
+        return data;
+    }
+
+    async VerifyResetCode(email, code) {
+        const res = await fetch("/api/verifyResetCode", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, code })
+        });
+        const data = await safeJson(res);
+        if (!res.ok) throw new Error(data?.error || data?.message || "Invalid or expired code");
+        return data;
+    }
+
+    async ResetPassword(email, code, newPassword) {
+        const res = await fetch("/api/resetPassword", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, code, newPassword })
+        });
+        const data = await safeJson(res);
+        if (!res.ok) throw new Error(data?.error || data?.message || "Reset failed");
+        return data;
+    }
+
+    async VerifyEmail(email, code) {
+        const res = await fetch("/api/verifyEmail", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, code })
+        });
+        const data = await safeJson(res);
+        if (!res.ok) throw new Error(data?.error || data?.message || "Verification failed");
+        return data;
+    }
+
+    async ResendVerification(email) {
+        const res = await fetch("/api/resendVerification", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email })
+        });
+        const data = await safeJson(res);
+        if (!res.ok) throw new Error(data?.error || data?.message || "Failed to resend code");
+        return data;
     }
 
     async Me() {

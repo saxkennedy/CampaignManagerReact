@@ -6,7 +6,7 @@ export const Dashboard = (props) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     
-    const backgroundUrl = `url("https://lh3.googleusercontent.com/d/1K3a6x-eXhCUV4Bu8t5COS_z1KjRhOP5K")`;
+    const backgroundUrl = `url("/img/DashboardBackground.jpg")`;
 
     
     if (props.fetching) return <div>Loading...</div>;
