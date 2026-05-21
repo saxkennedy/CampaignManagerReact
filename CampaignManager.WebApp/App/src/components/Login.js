@@ -1,5 +1,5 @@
-﻿import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Container, TextField, Button, Typography, Box, Alert } from '@mui/material';
 import UserService from '../api/UserService';
 
@@ -7,14 +7,19 @@ export const Login = (props) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [unverifiedEmail, setUnverifiedEmail] = useState(null);
     const navigate = useNavigate();
-    const backgroundUrl = `url("https://lh3.googleusercontent.com/d/1_gpQmsPAeoSiolDu-NUdOWxDlbkdkPP3")`;
+    const location = useLocation();
+    const justVerified = location.state?.verified === true;
+    const justReset = location.state?.passwordReset === true;
+    const backgroundUrl = `url("/img/LoginBackground.jpg")`;
 
     const handleSubmit = async (e) => {
         if (e?.preventDefault) e.preventDefault();
         if (e?.stopPropagation) e.stopPropagation();
 
         setError('');
+        setUnverifiedEmail(null);
         try {
             const res = await UserService.GetUser(email, password);
 
@@ -25,12 +30,20 @@ export const Login = (props) => {
                 setError('Login failed');
             }
         } catch (err) {
-            setError('Login failed');
+            if (err.unverified) {
+                setUnverifiedEmail(err.email || email);
+            } else {
+                setError(err.message || 'Login failed');
+            }
         }
     };
 
     const handleSignUp = () => {
         navigate('/register');
+    };
+
+    const handleGoVerify = () => {
+        navigate('/verify', { state: { email: unverifiedEmail } });
     };
 
     return (
@@ -89,6 +102,18 @@ export const Login = (props) => {
                         Login to your account
                     </Typography>
 
+                    {justVerified && (
+                        <Alert severity="success" sx={{ width: '100%', mb: 2 }}>
+                            Email verified! You can now log in.
+                        </Alert>
+                    )}
+
+                    {justReset && (
+                        <Alert severity="success" sx={{ width: '100%', mb: 2 }}>
+                            Password reset successfully. You can now log in.
+                        </Alert>
+                    )}
+
                     <form onSubmit={handleSubmit} style={{ width: '100%' }} autoComplete="off">
                         <Box sx={{ mb: 2 }}>
                             <TextField
@@ -113,9 +138,13 @@ export const Login = (props) => {
                             />
                         </Box>
 
+                        <Typography variant="body2" align="right" sx={{ mb: 1 }}>
+                            <Link to="/forgot-password">Forgot password?</Link>
+                        </Typography>
+
                         <Button
                             type="submit"
-                            onClick={handleSubmit}  // ✅ ensures click triggers even if form submit wiring breaks
+                            onClick={handleSubmit}
                             variant="contained"
                             color="primary"
                             fullWidth
@@ -128,6 +157,21 @@ export const Login = (props) => {
                         {error && (
                             <Box sx={{ mt: 2 }}>
                                 <Alert severity="error">{error}</Alert>
+                            </Box>
+                        )}
+
+                        {unverifiedEmail && (
+                            <Box sx={{ mt: 2 }}>
+                                <Alert
+                                    severity="warning"
+                                    action={
+                                        <Button color="inherit" size="small" onClick={handleGoVerify}>
+                                            Verify now
+                                        </Button>
+                                    }
+                                >
+                                    Email not verified.
+                                </Alert>
                             </Box>
                         )}
                     </form>

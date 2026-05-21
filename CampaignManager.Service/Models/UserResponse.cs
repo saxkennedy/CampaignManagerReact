@@ -7,8 +7,9 @@ namespace CampaignManager.Services.Models
         public Guid Id { get; set; }
         public string Email { get; set; }
         public string? FirstName { get; set; }
-        public string? LastName { get; set; }     
+        public string? LastName { get; set; }
         public string Persona { get; set; }
+        public bool IsVerified { get; set; }
         public List<GetCampaignPersonaResult> CampaignPersonas { get; set; }
     }
 }

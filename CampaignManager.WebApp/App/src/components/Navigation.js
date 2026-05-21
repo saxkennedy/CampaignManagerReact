@@ -7,6 +7,8 @@ import {
     Collapse,
     ClickAwayListener,
     Box,
+    Menu,
+    MenuItem,
 } from '@mui/material';
 import UserService from '../api/UserService';
 
@@ -15,6 +17,7 @@ export const Navigation = (props) => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [drawerContent, setDrawerContent] = useState([]);
     const [drawerKey, setDrawerKey] = useState(null);
+    const [accountAnchor, setAccountAnchor] = useState(null);
     const appBarRef = useRef(null);
 
     const campaigns = useMemo(() => {
@@ -117,10 +120,31 @@ export const Navigation = (props) => {
                         Player Tools
                     </Button>
 
-                    <Button onClick={() => handleTopNavClick('logout')}
-                        sx={{ flexGrow: 1, color: 'white', fontWeight: 600, textTransform: 'none' }}>
-                        Logout
+                    <Button
+                        onClick={(e) => setAccountAnchor(e.currentTarget)}
+                        sx={{ flexGrow: 1, color: 'white', fontWeight: 600, textTransform: 'none' }}
+                    >
+                        Account
                     </Button>
+                    <Menu
+                        anchorEl={accountAnchor}
+                        open={Boolean(accountAnchor)}
+                        onClose={() => setAccountAnchor(null)}
+                    >
+                        <MenuItem onClick={() => { setAccountAnchor(null); navigate('/change-password'); }}>
+                            Change Password
+                        </MenuItem>
+                        <MenuItem onClick={() => {
+                            setAccountAnchor(null);
+                            UserService.clearToken();
+                            props.setUser?.(null);
+                            props.setActiveCampaignId?.(null);
+                            setDrawerOpen(false);
+                            navigate('/login');
+                        }}>
+                            Logout
+                        </MenuItem>
+                    </Menu>
                 </Toolbar>
 
                 <Collapse in={drawerOpen} unmountOnExit>
