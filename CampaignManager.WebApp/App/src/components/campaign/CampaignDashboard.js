@@ -3,9 +3,10 @@ import React from 'react';
 import { List, ListItem, ListItemText, Collapse, Box } from '@mui/material';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import ContentViewer from '../utilities/ContentViewer';
-import CampaignAdmin from './CampaignAdmin';
+import CampaignAdminTabs from './CampaignAdminTabs';
 import CampaignContentService from '../../api/CampaignContentService';
 import PotionLoader from '../utilities/PotionLoader';
+import { getAdminCapabilities } from './campaignPermissions';
 
 // ---------- helpers ----------
 const pick = (obj, pascal, camel) => obj?.[pascal] ?? obj?.[camel];
@@ -137,12 +138,10 @@ export const CampaignDashboard = (props) => {
     const [loading, setLoading] = React.useState(true);
 
     // Permissions:
-    // ✅ Campaign Administration should show for anyone who is Hierarchy 1 in the currently selected campaign.
-    const canAdmin = !!user?.CampaignPersonas?.some(
-        (cp) =>
-            (!campaignId ||
-                cp.CampaignId?.toLowerCase() === campaignId?.toLowerCase()) &&
-            Number(cp.Hierarchy) === 1
+    // Campaign Administration shows for anyone holding an admin permission in this campaign.
+    const canAdmin = React.useMemo(
+        () => getAdminCapabilities(user, campaignId).canAdmin,
+        [user, campaignId]
     );
 
     const userHierarchy = React.useMemo(
@@ -344,7 +343,7 @@ export const CampaignDashboard = (props) => {
             {/* Right content area */}
             <Box sx={{ flex: 1, minWidth: 0, display: 'flex' }}>
                 {adminMode ? (
-                    <CampaignAdmin campaignId={campaignId} user={props.user?.Id} />
+                    <CampaignAdminTabs campaignId={campaignId} user={props.user} />
                 ) : selectedRoute ? (
                     <ContentViewer url={selectedRoute} title={selectedTitle} topOffset={0} />
                 ) : loading ? (

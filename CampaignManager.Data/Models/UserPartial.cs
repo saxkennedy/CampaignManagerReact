@@ -2,5 +2,5 @@ namespace Data.Models;
 
 public partial class User
 {
-    public bool IsVerified { get; set; }
+    // IsVerified is now part of the scaffolded User.cs; this partial is kept for future customizations.
 }

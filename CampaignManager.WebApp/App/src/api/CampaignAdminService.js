@@ -1,21 +1,12 @@
-﻿import Api from './Api';
+import Api from './Api';
+import UserService from './UserService';
 
-// Small helper to normalize responses from Api.fetch (assumed to return a Response)
-async function handleResponse(res) {
-    // If your Api.fetch already returns JSON, delete this function and calls to it.
-    if (!res) throw new Error('No response from server.');
-    if (!res.ok) {
-        const text = await res.text().catch(() => '');
-        throw new Error(text || `Request failed: ${res.status}`);
-    }
-    // Try JSON; fall back to text
-    const contentType = res.headers?.get?.('content-type') || '';
-    if (contentType.includes('application/json')) return res.json();
-    const text = await res.text();
-    try { return JSON.parse(text); } catch { return text; }
+async function parseJson(res) {
+    try { return await res.json(); } catch { return null; }
 }
 
 class CampaignAdminService {
+    // --- Tab 1: content (existing, anonymous endpoint via Api) ---
     async crudContent(campaignId, payload) {
         const res = await Api.fetch(`/api/campaignadmin/${campaignId}/content`, {
             method: 'POST',
@@ -23,6 +14,75 @@ class CampaignAdminService {
             body: JSON.stringify(payload),
         });
         return res;
+    }
+
+    // Campaign-assignable permission catalog (for the create flow + Tab 2).
+    async getAssignablePermissions() {
+        const res = await UserService.authFetch('/api/permissions/assignable', { method: 'GET' });
+        const data = await parseJson(res);
+        if (!res.ok) throw new Error(data?.error || `Failed to load permissions (${res.status})`);
+        return data;
+    }
+
+    // --- Tab 2: persona management (authenticated) ---
+    async getPersonas(campaignId) {
+        const res = await UserService.authFetch(`/api/campaignadmin/${campaignId}/personas`, { method: 'GET' });
+        const data = await parseJson(res);
+        if (!res.ok) throw new Error(data?.error || `Failed to load personas (${res.status})`);
+        return data;
+    }
+
+    async upsertPersona(campaignId, payload) {
+        const res = await UserService.authFetch(`/api/campaignadmin/${campaignId}/personas`, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        });
+        const data = await parseJson(res);
+        if (!res.ok) {
+            const err = new Error(data?.error || `Failed to save persona (${res.status})`);
+            err.status = res.status;
+            // Present on a 409 rank collision: { hierarchy, personaName }
+            err.rankConflict = data?.rankConflict || null;
+            throw err;
+        }
+        return data;
+    }
+
+    // Returns { deleted:true } on success, or { deleted:false, error, blockingMembers:[...] } when blocked.
+    async deletePersona(campaignId, personaId) {
+        const res = await UserService.authFetch(`/api/campaignadmin/${campaignId}/personas/${personaId}`, {
+            method: 'DELETE',
+        });
+        const data = await parseJson(res);
+        if (res.status === 409) return data; // blocked by assigned members — a normal outcome
+        if (!res.ok) {
+            const err = new Error(data?.error || `Failed to delete persona (${res.status})`);
+            err.status = res.status;
+            throw err;
+        }
+        return data;
+    }
+
+    // --- Tab 3: members + reassignment (authenticated) ---
+    async getMembers(campaignId) {
+        const res = await UserService.authFetch(`/api/campaignadmin/${campaignId}/members`, { method: 'GET' });
+        const data = await parseJson(res);
+        if (!res.ok) throw new Error(data?.error || `Failed to load members (${res.status})`);
+        return data;
+    }
+
+    async reassignMember(campaignId, payload) {
+        const res = await UserService.authFetch(`/api/campaignadmin/${campaignId}/reassign`, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        });
+        const data = await parseJson(res);
+        if (!res.ok) {
+            const err = new Error(data?.error || `Failed to reassign member (${res.status})`);
+            err.status = res.status;
+            throw err;
+        }
+        return data;
     }
 }
 

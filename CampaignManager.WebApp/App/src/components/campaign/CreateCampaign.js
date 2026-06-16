@@ -14,23 +14,27 @@ import {
     FormControl,
     Divider,
     Stack,
-    Grid
+    Grid,
+    Checkbox,
+    ListItemText
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
 import UserService from "../../api/UserService";
+import CampaignAdminService from "../../api/CampaignAdminService";
+import { CREATOR_HIERARCHY, MAX_RANK } from "./campaignPermissions";
 
-const MAX_PERSONAS = 10;
+const MAX_PERSONAS = MAX_RANK + 1; // creator (0) + ranks 1..MAX_RANK
 
 const DEFAULT_PERSONAS = [
-    { displayName: "Creator", hierarchy: 1, lockedCreator: true },
-    { displayName: "Player", hierarchy: 5, lockedCreator: false },
-    { displayName: "Spectator", hierarchy: 10, lockedCreator: false }
+    { displayName: "Creator", hierarchy: CREATOR_HIERARCHY, lockedCreator: true, permissionIds: [] },
+    { displayName: "Player", hierarchy: 5, lockedCreator: false, permissionIds: [] },
+    { displayName: "Spectator", hierarchy: 10, lockedCreator: false, permissionIds: [] }
 ];
 
-// Hierarchy choices for non-creator personas (explicitly excludes 1)
-const HIERARCHY_OPTIONS = [2, 3, 4, 5, 6, 7, 8, 9, 10];
+// Hierarchy choices for non-creator personas (1..MAX_RANK; 0 is reserved for the creator)
+const HIERARCHY_OPTIONS = Array.from({ length: MAX_RANK }, (_, i) => i + 1);
 
 export default function CreateCampaign(props) {
     const navigate = useNavigate();
@@ -51,12 +55,32 @@ export default function CreateCampaign(props) {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
+    // Campaign-assignable permission catalog for the per-persona selectors.
+    const [permCatalog, setPermCatalog] = useState([]); // [{ Id, DisplayName }]
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const cat = await CampaignAdminService.getAssignablePermissions();
+                if (!cancelled) {
+                    setPermCatalog((cat || []).map((c) => ({
+                        Id: String(c.Id ?? c.id),
+                        DisplayName: c.DisplayName ?? c.displayName,
+                    })));
+                }
+            } catch {
+                // Non-fatal: campaign can still be created; permissions can be set later in Tab 2.
+            }
+        })();
+        return () => { cancelled = true; };
+    }, []);
+
     const canAddPersona = personas.length < MAX_PERSONAS;
 
-    // Join persona cannot be hierarchy 1
+    // Join persona cannot be the creator
     const joinOptions = useMemo(() => {
         return personas
-            .filter(p => Number(p.hierarchy) !== 1)
+            .filter(p => Number(p.hierarchy) !== CREATOR_HIERARCHY)
             .map(p => ({
                 label: `${p.displayName} (Hierarchy ${p.hierarchy})`,
                 hierarchy: Number(p.hierarchy)
@@ -80,7 +104,7 @@ export default function CreateCampaign(props) {
             // If join persona got removed, select the first non-creator persona
             const stillExists = next.some(p => Number(p.hierarchy) === Number(joinHierarchy));
             if (!stillExists) {
-                const fallback = next.find(p => Number(p.hierarchy) !== 1);
+                const fallback = next.find(p => Number(p.hierarchy) !== CREATOR_HIERARCHY);
                 if (fallback) setJoinHierarchy(Number(fallback.hierarchy));
             }
 
@@ -96,7 +120,7 @@ export default function CreateCampaign(props) {
 
         setPersonas(prev => [
             ...prev,
-            { displayName: "", hierarchy: firstFree, lockedCreator: false }
+            { displayName: "", hierarchy: firstFree, lockedCreator: false, permissionIds: [] }
         ]);
     };
 
@@ -119,8 +143,8 @@ export default function CreateCampaign(props) {
         if (!name.trim()) return "Campaign Name is required.";
         if (personas.length < 2) return "At least 2 personas are required.";
 
-        const creator = personas.find(p => Number(p.hierarchy) === 1);
-        if (!creator) return "A persona at hierarchy 1 is required.";
+        const creator = personas.find(p => Number(p.hierarchy) === CREATOR_HIERARCHY);
+        if (!creator) return "A creator persona (hierarchy 0) is required.";
 
         if (personas.some(p => !p.displayName?.trim()))
             return "All personas must have a display name.";
@@ -130,10 +154,10 @@ export default function CreateCampaign(props) {
         if (set.size !== hier.length)
             return "Each persona must have a unique hierarchy number.";
 
-        if (personas.some(p => !p.lockedCreator && Number(p.hierarchy) === 1))
-            return "Hierarchy 1 is reserved for the Creator persona.";
+        if (personas.some(p => !p.lockedCreator && Number(p.hierarchy) === CREATOR_HIERARCHY))
+            return "Hierarchy 0 is reserved for the Creator persona.";
 
-        if (Number(joinHierarchy) === 1)
+        if (Number(joinHierarchy) === CREATOR_HIERARCHY)
             return "Join persona cannot be the Creator persona.";
 
         if (!personas.some(p => Number(p.hierarchy) === Number(joinHierarchy)))
@@ -163,7 +187,9 @@ export default function CreateCampaign(props) {
                 campaignJoinPersonaHierarchy: Number(joinHierarchy),
                 personas: personas.map(p => ({
                     displayName: p.displayName.trim(),
-                    hierarchy: Number(p.hierarchy)
+                    hierarchy: Number(p.hierarchy),
+                    // Creator (H1) is always granted all permissions server-side; send none.
+                    permissionIds: p.lockedCreator ? [] : (p.permissionIds || [])
                 }))
             };
 
@@ -181,11 +207,11 @@ export default function CreateCampaign(props) {
 
     // Keep joinHierarchy valid if personas change
     useEffect(() => {
-        const nonCreator = personas.filter(p => Number(p.hierarchy) !== 1);
+        const nonCreator = personas.filter(p => Number(p.hierarchy) !== CREATOR_HIERARCHY);
         if (nonCreator.length === 0) return;
 
         const exists = personas.some(p => Number(p.hierarchy) === Number(joinHierarchy));
-        if (!exists || Number(joinHierarchy) === 1) {
+        if (!exists || Number(joinHierarchy) === CREATOR_HIERARCHY) {
             setJoinHierarchy(Number(nonCreator[0].hierarchy));
         }
     }, [personas, joinHierarchy]);
@@ -230,7 +256,7 @@ export default function CreateCampaign(props) {
                             Personas (2–10)
                         </Typography>
                         <Typography sx={{ color: "text.secondary" }}>
-                            Persona hierarchy values must be unique. Hierarchy 1 is reserved for the Creator persona.
+                            Persona hierarchy values must be unique. Hierarchy 0 is reserved for the Creator persona.
                         </Typography>
 
                         {/* ✅ One persona per line within this section */}
@@ -247,7 +273,7 @@ export default function CreateCampaign(props) {
                                     <Grid item xs={12} md={7}>
                                         <TextField
                                             fullWidth
-                                            label={p.lockedCreator ? "Creator Persona Name (Hierarchy 1)" : "Persona Name"}
+                                            label={p.lockedCreator ? "Creator Persona Name (Hierarchy 0)" : "Persona Name"}
                                             value={p.displayName}
                                             onChange={(e) => setPersonaField(idx, "displayName", e.target.value)}
                                             autoComplete="off"
@@ -267,7 +293,7 @@ export default function CreateCampaign(props) {
                                                 <TextField
                                                     fullWidth
                                                     label="Hierarchy"
-                                                    value={1}
+                                                    value={CREATOR_HIERARCHY}
                                                     disabled
                                                 />
                                             ) : (
@@ -307,6 +333,46 @@ export default function CreateCampaign(props) {
                                         >
                                             <DeleteIcon />
                                         </IconButton>
+                                    </Grid>
+
+                                    {/* Permissions for this persona */}
+                                    <Grid item xs={12}>
+                                        {p.lockedCreator ? (
+                                            <Typography variant="body2" color="text.secondary">
+                                                The Creator persona is granted all permissions.
+                                            </Typography>
+                                        ) : (
+                                            <FormControl fullWidth size="small" disabled={permCatalog.length === 0}>
+                                                <InputLabel id={`permsLabel_${idx}`}>Permissions</InputLabel>
+                                                <Select
+                                                    labelId={`permsLabel_${idx}`}
+                                                    label="Permissions"
+                                                    multiple
+                                                    value={p.permissionIds || []}
+                                                    onChange={(e) =>
+                                                        setPersonaField(
+                                                            idx,
+                                                            "permissionIds",
+                                                            typeof e.target.value === "string"
+                                                                ? e.target.value.split(",")
+                                                                : e.target.value
+                                                        )
+                                                    }
+                                                    renderValue={(selected) =>
+                                                        selected
+                                                            .map((id) => permCatalog.find((c) => c.Id === id)?.DisplayName || id)
+                                                            .join(", ")
+                                                    }
+                                                >
+                                                    {permCatalog.map((c) => (
+                                                        <MenuItem key={c.Id} value={c.Id}>
+                                                            <Checkbox checked={(p.permissionIds || []).indexOf(c.Id) > -1} />
+                                                            <ListItemText primary={c.DisplayName} />
+                                                        </MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </FormControl>
+                                        )}
                                     </Grid>
                                 </Grid>
                             ))}

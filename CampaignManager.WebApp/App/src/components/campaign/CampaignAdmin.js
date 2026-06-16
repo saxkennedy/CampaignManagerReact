@@ -492,19 +492,8 @@ const CampaignAdmin = ({ campaignId }) => {
     }, []);
 
     return (
-        <Box
-            sx={{
-                height: 'calc(100vh - 0px)',
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 2,
-            }}
-        >
-            <Card>
-                <CardHeader title="Campaign Administration" subheader={`Campaign ID: ${campaignId}`} />
-                <Divider />
-                <CardContent>
+        <Box sx={{ width: '100%' }}>
+            <Box>
                     {loading && (
                         <Stack direction="row" alignItems="center" spacing={1} sx={{ py: 1 }}>
                             <CircularProgress size={20} /> <Typography>Loading…</Typography>
@@ -518,7 +507,7 @@ const CampaignAdmin = ({ campaignId }) => {
                     )}
 
                     {!loading && (
-                        <Stack spacing={3}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                             {/* Actions */}
                             <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
                                 <Button variant="contained" color="warning" onClick={onAddClick}>
@@ -541,8 +530,8 @@ const CampaignAdmin = ({ campaignId }) => {
                                 </Stack>
                             </Stack>
 
-                            {/* Existing content hierarchy */}
-                            <Box>
+                            {/* Existing content hierarchy — scrollable, kept below the form */}
+                            <Box sx={{ order: 2 }}>
                                 <Typography variant="h6" sx={{ mb: 1 }}>
                                     Existing Content
                                 </Typography>
@@ -562,9 +551,20 @@ const CampaignAdmin = ({ campaignId }) => {
                                 )}
                             </Box>
 
-                            {/* Form */}
+                            {/* Form — pinned above the content list so it stays accessible */}
                             {showForm && (
-                                <Box component="form" onSubmit={onSubmit}>
+                                <Box
+                                    component="form"
+                                    onSubmit={onSubmit}
+                                    sx={{
+                                        order: 1,
+                                        p: 2,
+                                        border: '1px solid',
+                                        borderColor: 'divider',
+                                        borderRadius: 1,
+                                        backgroundColor: 'background.paper',
+                                    }}
+                                >
                                     <Grid container spacing={2}>
                                         <Grid item xs={12}>
                                             <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
@@ -709,10 +709,9 @@ const CampaignAdmin = ({ campaignId }) => {
                                     </Grid>
                                 </Box>
                             )}
-                        </Stack>
+                        </Box>
                     )}
-                </CardContent>
-            </Card>
+            </Box>
         </Box>
     );
 };

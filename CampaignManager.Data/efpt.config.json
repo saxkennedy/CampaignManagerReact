@@ -5,7 +5,7 @@
    "FilterSchemas": false,
    "IncludeConnectionString": false,
    "IrregularWords": null,
-   "MinimumProductVersion": "2.6.1301",
+   "MinimumProductVersion": "2.6.1604",
    "ModelNamespace": null,
    "OutputContextPath": null,
    "OutputPath": "Models",
@@ -23,6 +23,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[CampaignPersonaPermissions]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[CampaignPersonas]",
          "ObjectType": 0
       },
@@ -32,6 +36,10 @@
       },
       {
          "Name": "[dbo].[ContentTypes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Permissions]",
          "ObjectType": 0
       },
       {
@@ -77,5 +85,6 @@
    "UseSchemaNamespaces": false,
    "UseSpatial": false,
    "UseT4": false,
-   "UseT4Split": false
+   "UseT4Split": false,
+   "UseTypedTvpParameters": true
 }

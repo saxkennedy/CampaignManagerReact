@@ -19,7 +19,11 @@ public partial class CampaignManagerContext : DbContext
 
     public virtual DbSet<CampaignPersona> CampaignPersonas { get; set; }
 
+    public virtual DbSet<CampaignPersonaPermission> CampaignPersonaPermissions { get; set; }
+
     public virtual DbSet<ContentType> ContentTypes { get; set; }
+
+    public virtual DbSet<Permission> Permissions { get; set; }
 
     public virtual DbSet<SitePersona> SitePersonas { get; set; }
 
@@ -74,12 +78,37 @@ public partial class CampaignManagerContext : DbContext
                 .HasConstraintName("FK__CampaignP__Campa__6FE99F9F");
         });
 
+        modelBuilder.Entity<CampaignPersonaPermission>(entity =>
+        {
+            entity.HasKey(e => new { e.CampaignPersonaId, e.PermissionId }).HasName("PK__Campaign__6B78B9B266FC534E");
+
+            entity.HasOne(d => d.CampaignPersona).WithMany(p => p.CampaignPersonaPermissions)
+                .HasForeignKey(d => d.CampaignPersonaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__CampaignP__Campa__6442E2C9");
+
+            entity.HasOne(d => d.Permission).WithMany(p => p.CampaignPersonaPermissions)
+                .HasForeignKey(d => d.PermissionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__CampaignP__Permi__65370702");
+        });
+
         modelBuilder.Entity<ContentType>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__ContentT__3214EC0709FAEAB9");
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
             entity.Property(e => e.Type).HasMaxLength(120);
+        });
+
+        modelBuilder.Entity<Permission>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Permissi__3214EC07D1468E20");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.DisplayName)
+                .IsRequired()
+                .HasMaxLength(120);
         });
 
         modelBuilder.Entity<SitePersona>(entity =>
@@ -101,6 +130,7 @@ public partial class CampaignManagerContext : DbContext
                 .IsRequired()
                 .HasMaxLength(250);
             entity.Property(e => e.FirstName).HasMaxLength(120);
+            entity.Property(e => e.IsVerified).HasAnnotation("Relational:DefaultConstraintName", "DF_Users_IsVerified");
             entity.Property(e => e.LastName).HasMaxLength(120);
             entity.Property(e => e.Password)
                 .IsRequired()

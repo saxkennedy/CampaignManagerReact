@@ -5,19 +5,13 @@ using System.Collections.Generic;
 
 namespace Data.Models;
 
-public partial class CampaignPersona
+public partial class Permission
 {
     public Guid Id { get; set; }
 
     public string DisplayName { get; set; }
 
-    public Guid CampaignId { get; set; }
-
-    public int Hierarchy { get; set; }
-
-    public virtual Campaign Campaign { get; set; }
+    public bool CampaignAssignable { get; set; }
 
     public virtual ICollection<CampaignPersonaPermission> CampaignPersonaPermissions { get; set; } = new List<CampaignPersonaPermission>();
-
-    public virtual ICollection<UserCampaignPersona> UserCampaignPersonas { get; set; } = new List<UserCampaignPersona>();
 }

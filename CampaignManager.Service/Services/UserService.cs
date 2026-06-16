@@ -4,6 +4,7 @@ using CampaignManager.Services.Services.Abstractions;
 using Data.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -225,6 +226,31 @@ namespace CampaignManager.Services.Services
 
         private async Task<UserResponse> BuildUserResponse(User user)
         {
+            // Personas (per campaign) come from the unchanged sproc...
+            var personaRows = await CampaignManagerContext.Procedures.GetCampaignPersonaAsync(user.Id);
+            var personaIds = personaRows.Select(r => r.CampaignPersonaId).ToList();
+
+            // ...and we attach each persona's granted permission names from the xref table.
+            var grants = await CampaignManagerContext.CampaignPersonaPermissions
+                .Where(x => personaIds.Contains(x.CampaignPersonaId))
+                .Select(x => new { x.CampaignPersonaId, x.Permission.DisplayName })
+                .ToListAsync();
+
+            var permsByPersona = grants
+                .GroupBy(g => g.CampaignPersonaId)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.DisplayName).ToList());
+
+            var campaignPersonas = personaRows.Select(r => new CampaignPersonaInfo
+            {
+                CampaignPersonaId = r.CampaignPersonaId,
+                CampaignPersonaName = r.CampaignPersonaName,
+                Hierarchy = r.Hierarchy,
+                CampaignId = r.CampaignId,
+                CampaignDescription = r.CampaignDescription,
+                CampaignName = r.CampaignName,
+                Permissions = permsByPersona.TryGetValue(r.CampaignPersonaId, out var p) ? p : new List<string>()
+            }).ToList();
+
             return new UserResponse
             {
                 Id = user.Id,
@@ -233,7 +259,7 @@ namespace CampaignManager.Services.Services
                 LastName = user.LastName,
                 Persona = user.PersonaId.ToString(),
                 IsVerified = user.IsVerified,
-                CampaignPersonas = await CampaignManagerContext.Procedures.GetCampaignPersonaAsync(user.Id)
+                CampaignPersonas = campaignPersonas
             };
         }
     }

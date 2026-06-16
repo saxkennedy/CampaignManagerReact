@@ -23,6 +23,8 @@ public partial class User
 
     public string Password { get; set; }
 
+    public bool IsVerified { get; set; }
+
     public virtual SitePersona Persona { get; set; }
 
     public virtual ICollection<UserCampaignPersona> UserCampaignPersonas { get; set; } = new List<UserCampaignPersona>();

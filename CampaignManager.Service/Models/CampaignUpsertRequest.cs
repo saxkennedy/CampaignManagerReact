@@ -25,5 +25,9 @@ namespace CampaignManager.Services.Models
         public Guid? Id { get; set; } // for future edit
         public string DisplayName { get; set; } = "";
         public int Hierarchy { get; set; }
+
+        // Campaign-assignable permission ids to grant this persona at creation.
+        // Ignored for the Hierarchy-1 creator persona, which is always seeded with all of them.
+        public List<Guid> PermissionIds { get; set; } = new();
     }
 }
