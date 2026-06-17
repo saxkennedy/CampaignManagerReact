@@ -125,12 +125,13 @@ public partial class CampaignManagerContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__Users__3214EC075D23BCD5");
 
+            entity.HasIndex(e => e.Email, "UQ_Users_Email").IsUnique();
+
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
             entity.Property(e => e.Email)
                 .IsRequired()
                 .HasMaxLength(250);
             entity.Property(e => e.FirstName).HasMaxLength(120);
-            entity.Property(e => e.IsVerified).HasAnnotation("Relational:DefaultConstraintName", "DF_Users_IsVerified");
             entity.Property(e => e.LastName).HasMaxLength(120);
             entity.Property(e => e.Password)
                 .IsRequired()

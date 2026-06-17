@@ -30,7 +30,13 @@
       "Bash(tee /tmp/func4.log)",
       "Bash(npm run *)",
       "Bash(taskkill //PID 19908 //T //F)",
-      "Bash(func host *)"
+      "Bash(func host *)",
+      "Bash(npm ls *)",
+      "Bash('/c/Program Files \\(x86\\)/Microsoft Visual Studio/Installer/vswhere.exe' -latest -property catalog_productDisplayVersion)",
+      "Bash('/c/Program Files \\(x86\\)/Microsoft Visual Studio/Installer/vswhere.exe' -latest -property displayName)",
+      "PowerShell(Get-CimInstance *)",
+      "Bash(dotnet msbuild *)",
+      "Bash(echo \"exit:$?\")"
     ]
   }
 }
