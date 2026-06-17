@@ -1,5 +1,5 @@
 ﻿{
-   "CodeGenerationMode": 6,
+   "CodeGenerationMode": 5,
    "ContextClassName": "CampaignManagerContext",
    "ContextNamespace": null,
    "FilterSchemas": false,

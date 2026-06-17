@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
     <OutputType>Exe</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -35,8 +35,10 @@
   <!-- Frees port 7071 before each build so a leftover Azure Functions host from a
        previous run can't block startup. Whatever owns the Functions port (func.exe via
        the CLI, or dotnet.exe via the VS debugger) is the host, so we kill the port owner
-       directly. Safe no-op when nothing is listening. -->
-  <Target Name="KillStaleFunctionsHost" BeforeTargets="Build">
+       directly. Safe no-op when nothing is listening. Windows-only: PowerShell and
+       Get-NetTCPConnection don't exist on the Linux CI build agent, so the condition
+       keeps this from erroring during the Static Web Apps deploy. -->
+  <Target Name="KillStaleFunctionsHost" BeforeTargets="Build" Condition="'$(OS)' == 'Windows_NT'">
     <Exec ContinueOnError="true"
           Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;Get-NetTCPConnection -LocalPort 7071 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }&quot;" />
   </Target>
