@@ -10,6 +10,7 @@ import Navigation from './components/Navigation';
 import CampaignDashboard from './components/campaign/CampaignDashboard';
 import React, { Component } from 'react';
 import SphereConverter from './components/player-tools/SphereConverter';
+import BastionFacilities from './components/player-tools/BastionFacilities';
 import ProtectedRoute from './components/utilities/ProtectedRoute';
 import UserService from './api/UserService';
 import JoinCampaign from './components/campaign/JoinCampaign';
@@ -165,6 +166,17 @@ export class App extends Component {
                                 <ProtectedRoute user={this.state.user} isLoading={this.state.fetching}>
                                     <div style={{ height: "96vh", width: "100vw", position: "relative", top: "4vh" }}>
                                         <SphereConverter user={this.state.user} />
+                                    </div>
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/bastionFacilities"
+                            element={
+                                <ProtectedRoute user={this.state.user} isLoading={this.state.fetching}>
+                                    <div style={{ height: "96vh", width: "100vw", position: "relative", top: "4vh" }}>
+                                        <BastionFacilities user={this.state.user} />
                                     </div>
                                 </ProtectedRoute>
                             }

@@ -39,7 +39,8 @@
       "Bash(echo \"exit:$?\")",
       "WebSearch",
       "WebFetch(domain:dnd2024.wikidot.com)",
-      "PowerShell(dotnet build *)"
+      "PowerShell(dotnet build *)",
+      "PowerShell(npm run *)"
     ]
   }
 }

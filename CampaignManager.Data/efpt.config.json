@@ -19,6 +19,10 @@
    "T4TemplatePath": null,
    "Tables": [
       {
+         "Name": "[dbo].[BastionFacilities]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[CampaignCategoryContentXREF]",
          "ObjectType": 0
       },

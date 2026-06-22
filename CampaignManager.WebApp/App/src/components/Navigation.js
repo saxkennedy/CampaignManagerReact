@@ -61,7 +61,7 @@ export const Navigation = (props) => {
         }
 
         if (route === 'playerTools') {
-            toggleDrawer('playerTools', ['Sphere Converter']);
+            toggleDrawer('playerTools', ['Sphere Converter', 'Bastion Facilities']);
             return;
         }
     };

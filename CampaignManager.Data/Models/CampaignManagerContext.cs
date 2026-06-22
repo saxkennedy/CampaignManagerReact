@@ -13,6 +13,8 @@ public partial class CampaignManagerContext : DbContext
     {
     }
 
+    public virtual DbSet<BastionFacility> BastionFacilities { get; set; }
+
     public virtual DbSet<Campaign> Campaigns { get; set; }
 
     public virtual DbSet<CampaignCategoryContentXref> CampaignCategoryContentXrefs { get; set; }
@@ -33,6 +35,25 @@ public partial class CampaignManagerContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<BastionFacility>(entity =>
+        {
+            entity.HasIndex(e => new { e.Name, e.SourceBook }, "UQ_BastionFacilities_Name_Source").IsUnique();
+
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.DateAdded).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.DescriptionMarkdown).IsRequired();
+            entity.Property(e => e.FacilityType)
+                .IsRequired()
+                .HasMaxLength(10);
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(150);
+            entity.Property(e => e.SourceBook)
+                .IsRequired()
+                .HasMaxLength(20);
+            entity.Property(e => e.SpaceJson).HasMaxLength(100);
+        });
+
         modelBuilder.Entity<Campaign>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Campaign__3214EC07783CDB57");
@@ -132,6 +153,7 @@ public partial class CampaignManagerContext : DbContext
                 .IsRequired()
                 .HasMaxLength(250);
             entity.Property(e => e.FirstName).HasMaxLength(120);
+            entity.Property(e => e.IsVerified).HasAnnotation("Relational:DefaultConstraintName", "DF_Users_IsVerified");
             entity.Property(e => e.LastName).HasMaxLength(120);
             entity.Property(e => e.Password)
                 .IsRequired()
