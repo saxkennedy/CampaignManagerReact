@@ -40,7 +40,19 @@
       "WebSearch",
       "WebFetch(domain:dnd2024.wikidot.com)",
       "PowerShell(dotnet build *)",
-      "PowerShell(npm run *)"
+      "PowerShell(npm run *)",
+      "Bash(command -v sqlcmd)",
+      "Read(//c/Users/saxke/OneDrive/Desktop/Bastion Seeding/ps/**)",
+      "Read(//c/Users/saxke/OneDrive/Desktop/Bastion Seeding/**)",
+      "Bash(cp C:/Users/saxke/source/repos/saxkennedy/CampaignManagerReact/CampaignManager.Service/BastionSeeding/BastionSeedTransformer.cs C:/Users/saxke/AppData/Local/Temp/claude/C--Users-saxke-source-repos-saxkennedy-CampaignManagerReact/b4665a44-216e-4866-9b63-23acefa5bceb/scratchpad/verify/cs/BastionSeedTransformer.cs)",
+      "Bash(sed -i 's/using api.Admin;/using CampaignManager.Services.BastionSeeding;/' Program.cs)",
+      "Bash(dotnet run *)",
+      "Bash(cat)",
+      "Bash(python smtptest2.py)",
+      "Bash(python -c \"import json; d=json.load\\(open\\('bastions.json',encoding='utf-8'\\)\\); import collections; c=collections.Counter\\(f.get\\('facilityType'\\) for f in d['facility']\\); [print\\(f'{v:3}  {k}'\\) for k,v in c.most_common\\(\\)]\")",
+      "Bash(python -c \"import json; d=json.load\\(open\\('bastions.json',encoding='utf-8'\\)\\); s=set\\(\\); [s.update\\(f.get\\('space',[]\\)\\) for f in d['facility']]; print\\(sorted\\(s\\)\\)\")",
+      "Bash(python -c \"import json; d=json.load\\(open\\('bastions.json',encoding='utf-8'\\)\\); b=[f for f in d['facility'] if f.get\\('facilityType'\\)=='basic']; print\\(json.dumps\\(b[0],indent=1\\)[:600] if b else 'no basic facilities in this file'\\)\")",
+      "Bash(CI=true npx --no-install react-scripts build)"
     ]
   }
 }

@@ -17,7 +17,13 @@ public partial class Campaign
 
     public Guid? CampaignJoinPersonaId { get; set; }
 
+    public virtual ICollection<BastionHireling> BastionHirelings { get; set; } = new List<BastionHireling>();
+
+    public virtual ICollection<CampaignBastion> CampaignBastions { get; set; } = new List<CampaignBastion>();
+
     public virtual ICollection<CampaignCategoryContentXref> CampaignCategoryContentXrefs { get; set; } = new List<CampaignCategoryContentXref>();
 
     public virtual ICollection<CampaignPersona> CampaignPersonas { get; set; } = new List<CampaignPersona>();
+
+    public virtual ICollection<Character> Characters { get; set; } = new List<Character>();
 }

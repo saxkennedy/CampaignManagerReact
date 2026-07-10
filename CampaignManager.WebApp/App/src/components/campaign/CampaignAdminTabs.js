@@ -42,7 +42,7 @@ const CampaignAdminTabs = ({ campaignId, user }) => {
                         <Box sx={{ p: 2 }}>
                             {current === 'content' && <CampaignAdmin campaignId={campaignId} />}
                             {current === 'personas' && <PersonaManagement campaignId={campaignId} />}
-                            {current === 'reassign' && <ReassignUsers campaignId={campaignId} />}
+                            {current === 'reassign' && <ReassignUsers campaignId={campaignId} canManageCharacters={caps.canManagePersonas} />}
                         </Box>
                     </>
                 )}

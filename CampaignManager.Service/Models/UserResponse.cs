@@ -9,6 +9,7 @@ namespace CampaignManager.Services.Models
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public string Persona { get; set; }
+        public string? SitePersonaName { get; set; }
         public bool IsVerified { get; set; }
         public List<CampaignPersonaInfo> CampaignPersonas { get; set; }
     }

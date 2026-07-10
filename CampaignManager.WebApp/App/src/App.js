@@ -11,6 +11,9 @@ import CampaignDashboard from './components/campaign/CampaignDashboard';
 import React, { Component } from 'react';
 import SphereConverter from './components/player-tools/SphereConverter';
 import BastionFacilities from './components/player-tools/BastionFacilities';
+import AdminTools from './components/admin/AdminTools';
+import BastionsPage from './components/bastion/BastionsPage';
+import BastionBuilder from './components/bastion/BastionBuilder';
 import ProtectedRoute from './components/utilities/ProtectedRoute';
 import UserService from './api/UserService';
 import JoinCampaign from './components/campaign/JoinCampaign';
@@ -183,6 +186,17 @@ export class App extends Component {
                         />
 
                         <Route
+                            path="/datatools"
+                            element={
+                                <ProtectedRoute user={this.state.user} isLoading={this.state.fetching}>
+                                    <div style={{ height: "96vh", width: "100vw", position: "relative", top: "4vh" }}>
+                                        <AdminTools user={this.state.user} />
+                                    </div>
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
                             path="/join"
                             element={
                                 <ProtectedRoute user={this.state.user} isLoading={this.state.fetching}>
@@ -201,6 +215,24 @@ export class App extends Component {
                                     <div style={{ height: "96vh", width: "100vw", position: "relative", top: "4vh" }}>
                                         <CreateCampaign user={this.state.user} setUser={this.setUser} />
                                     </div>
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/campaigns/:campaignId/bastions"
+                            element={
+                                <ProtectedRoute user={this.state.user} isLoading={this.state.fetching}>
+                                    <BastionsPage user={this.state.user} />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/campaigns/:campaignId/bastions/:bastionId"
+                            element={
+                                <ProtectedRoute user={this.state.user} isLoading={this.state.fetching}>
+                                    <BastionBuilder user={this.state.user} />
                                 </ProtectedRoute>
                             }
                         />

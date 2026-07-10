@@ -13,15 +13,39 @@ public partial class CampaignManagerContext : DbContext
     {
     }
 
+    public virtual DbSet<BastionAccessLevel> BastionAccessLevels { get; set; }
+
+    public virtual DbSet<BastionActivity> BastionActivities { get; set; }
+
+    public virtual DbSet<BastionActivityHireling> BastionActivityHirelings { get; set; }
+
+    public virtual DbSet<BastionActivityLog> BastionActivityLogs { get; set; }
+
+    public virtual DbSet<BastionCharacter> BastionCharacters { get; set; }
+
     public virtual DbSet<BastionFacility> BastionFacilities { get; set; }
 
+    public virtual DbSet<BastionFloor> BastionFloors { get; set; }
+
+    public virtual DbSet<BastionHireling> BastionHirelings { get; set; }
+
+    public virtual DbSet<BastionRoom> BastionRooms { get; set; }
+
+    public virtual DbSet<BastionTurnSegment> BastionTurnSegments { get; set; }
+
+    public virtual DbSet<BastionTurnSegmentCharacter> BastionTurnSegmentCharacters { get; set; }
+
     public virtual DbSet<Campaign> Campaigns { get; set; }
+
+    public virtual DbSet<CampaignBastion> CampaignBastions { get; set; }
 
     public virtual DbSet<CampaignCategoryContentXref> CampaignCategoryContentXrefs { get; set; }
 
     public virtual DbSet<CampaignPersona> CampaignPersonas { get; set; }
 
     public virtual DbSet<CampaignPersonaPermission> CampaignPersonaPermissions { get; set; }
+
+    public virtual DbSet<Character> Characters { get; set; }
 
     public virtual DbSet<ContentType> ContentTypes { get; set; }
 
@@ -31,10 +55,140 @@ public partial class CampaignManagerContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+    public virtual DbSet<UserBastion> UserBastions { get; set; }
+
     public virtual DbSet<UserCampaignPersona> UserCampaignPersonas { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<BastionAccessLevel>(entity =>
+        {
+            entity.ToTable("BastionAccessLevel");
+
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(20);
+        });
+
+        modelBuilder.Entity<BastionActivity>(entity =>
+        {
+            entity.HasIndex(e => e.CharacterId, "IX_BActivity_CharId");
+
+            entity.HasIndex(e => e.BastionRoomId, "IX_BActivity_RoomId");
+
+            entity.HasIndex(e => e.SegmentId, "IX_BActivity_SegmentId");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_BActivity_Id");
+            entity.Property(e => e.ActionKind)
+                .IsRequired()
+                .HasMaxLength(20);
+            entity.Property(e => e.DateAdded)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_BActivity_Added");
+            entity.Property(e => e.DurationDays).HasAnnotation("Relational:DefaultConstraintName", "DF_BActivity_Dur");
+            entity.Property(e => e.LongRestsCost).HasAnnotation("Relational:DefaultConstraintName", "DF_BActivity_Rests");
+            entity.Property(e => e.OrderType).HasMaxLength(40);
+            entity.Property(e => e.RowVersion)
+                .IsRequired()
+                .IsRowVersion()
+                .IsConcurrencyToken();
+            entity.Property(e => e.Status)
+                .IsRequired()
+                .HasMaxLength(20)
+                .HasDefaultValue("Planned")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_BActivity_Status");
+            entity.Property(e => e.Title).HasMaxLength(200);
+            entity.Property(e => e.TurnsCost).HasAnnotation("Relational:DefaultConstraintName", "DF_BActivity_Turns");
+
+            entity.HasOne(d => d.BastionRoom).WithMany(p => p.BastionActivities)
+                .HasForeignKey(d => d.BastionRoomId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BActivity_Room");
+
+            entity.HasOne(d => d.Character).WithMany(p => p.BastionActivities)
+                .HasForeignKey(d => d.CharacterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BActivity_Character");
+
+            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.BastionActivities)
+                .HasForeignKey(d => d.CreatedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BActivity_User");
+
+            entity.HasOne(d => d.Segment).WithMany(p => p.BastionActivities)
+                .HasForeignKey(d => d.SegmentId)
+                .HasConstraintName("FK_BActivity_Segment");
+        });
+
+        modelBuilder.Entity<BastionActivityHireling>(entity =>
+        {
+            entity.HasIndex(e => e.ActivityId, "IX_BAH_ActivityId");
+
+            entity.HasIndex(e => new { e.ActivityId, e.BastionHirelingId }, "UQ_BAH").IsUnique();
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_BAH_Id");
+            entity.Property(e => e.DateAdded)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_BAH_Added");
+
+            entity.HasOne(d => d.Activity).WithMany(p => p.BastionActivityHirelings)
+                .HasForeignKey(d => d.ActivityId)
+                .HasConstraintName("FK_BAH_Activity");
+
+            entity.HasOne(d => d.BastionHireling).WithMany(p => p.BastionActivityHirelings)
+                .HasForeignKey(d => d.BastionHirelingId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BAH_Hireling");
+        });
+
+        modelBuilder.Entity<BastionActivityLog>(entity =>
+        {
+            entity.HasIndex(e => e.SegmentId, "IX_BALog_SegmentId");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_BALog_Id");
+            entity.Property(e => e.Action)
+                .IsRequired()
+                .HasMaxLength(40);
+            entity.Property(e => e.DateAdded)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_BALog_Added");
+
+            entity.HasOne(d => d.Segment).WithMany(p => p.BastionActivityLogs)
+                .HasForeignKey(d => d.SegmentId)
+                .HasConstraintName("FK_BALog_Segment");
+        });
+
+        modelBuilder.Entity<BastionCharacter>(entity =>
+        {
+            entity.HasIndex(e => e.BastionId, "IX_BastionCharacters_BastionId");
+
+            entity.HasIndex(e => e.CharacterId, "IX_BastionCharacters_CharacterId");
+
+            entity.HasIndex(e => new { e.BastionId, e.CharacterId }, "UQ_BastionCharacters").IsUnique();
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_BastionCharacters_Id");
+            entity.Property(e => e.DateAdded)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_BastionCharacters_DateAdded");
+
+            entity.HasOne(d => d.Bastion).WithMany(p => p.BastionCharacters)
+                .HasForeignKey(d => d.BastionId)
+                .HasConstraintName("FK_BastionCharacters_Bastion");
+
+            entity.HasOne(d => d.Character).WithMany(p => p.BastionCharacters)
+                .HasForeignKey(d => d.CharacterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BastionCharacters_Character");
+        });
+
         modelBuilder.Entity<BastionFacility>(entity =>
         {
             entity.HasIndex(e => new { e.Name, e.SourceBook }, "UQ_BastionFacilities_Name_Source").IsUnique();
@@ -54,6 +208,154 @@ public partial class CampaignManagerContext : DbContext
             entity.Property(e => e.SpaceJson).HasMaxLength(100);
         });
 
+        modelBuilder.Entity<BastionFloor>(entity =>
+        {
+            entity.ToTable("BastionFloor");
+
+            entity.HasIndex(e => e.BastionId, "IX_BastionFloor_BastionId");
+
+            entity.HasIndex(e => new { e.BastionId, e.Level }, "UQ_BastionFloor_Bastion_Level").IsUnique();
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_BastionFloor_Id");
+            entity.Property(e => e.DateAdded)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_BastionFloor_DateAdded");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.HasOne(d => d.Bastion).WithMany(p => p.BastionFloors)
+                .HasForeignKey(d => d.BastionId)
+                .HasConstraintName("FK_BastionFloor_CampaignBastions");
+        });
+
+        modelBuilder.Entity<BastionHireling>(entity =>
+        {
+            entity.ToTable("BastionHireling");
+
+            entity.HasIndex(e => e.BastionRoomId, "IX_BastionHireling_BastionRoomId").HasFilter("([BastionRoomId] IS NOT NULL)");
+
+            entity.HasIndex(e => e.CampaignId, "IX_BastionHireling_CampaignId");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_BastionHireling_Id");
+            entity.Property(e => e.DateAdded)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_BastionHireling_DateAdded");
+            entity.Property(e => e.IsAbsent).HasAnnotation("Relational:DefaultConstraintName", "DF_BastionHireling_IsAbsent");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(120);
+            entity.Property(e => e.Role).HasMaxLength(120);
+            entity.Property(e => e.RowVersion)
+                .IsRequired()
+                .IsRowVersion()
+                .IsConcurrencyToken();
+            entity.Property(e => e.SortOrder).HasAnnotation("Relational:DefaultConstraintName", "DF_BastionHireling_SortOrder");
+
+            entity.HasOne(d => d.BastionRoom).WithMany(p => p.BastionHirelings)
+                .HasForeignKey(d => d.BastionRoomId)
+                .HasConstraintName("FK_BastionHireling_BastionRoom");
+
+            entity.HasOne(d => d.Campaign).WithMany(p => p.BastionHirelings)
+                .HasForeignKey(d => d.CampaignId)
+                .HasConstraintName("FK_BastionHireling_Campaign");
+        });
+
+        modelBuilder.Entity<BastionRoom>(entity =>
+        {
+            entity.ToTable("BastionRoom");
+
+            entity.HasIndex(e => e.BastionId, "IX_BastionRoom_BastionId");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_BastionRoom_Id");
+            entity.Property(e => e.Color).HasMaxLength(20);
+            entity.Property(e => e.FloorLevel).HasAnnotation("Relational:DefaultConstraintName", "DF_BastionRoom_FloorLevel");
+            entity.Property(e => e.Kind)
+                .IsRequired()
+                .HasMaxLength(20);
+            entity.Property(e => e.Name).HasMaxLength(150);
+            entity.Property(e => e.OriginX).HasAnnotation("Relational:DefaultConstraintName", "DF_BastionRoom_OriginX");
+            entity.Property(e => e.OriginY).HasAnnotation("Relational:DefaultConstraintName", "DF_BastionRoom_OriginY");
+            entity.Property(e => e.RowVersion)
+                .IsRequired()
+                .IsRowVersion()
+                .IsConcurrencyToken();
+            entity.Property(e => e.SpaceSize).HasMaxLength(10);
+
+            entity.HasOne(d => d.BastionFacility).WithMany(p => p.BastionRooms)
+                .HasForeignKey(d => d.BastionFacilityId)
+                .HasConstraintName("FK_BastionRoom_BastionFacilities");
+
+            entity.HasOne(d => d.Bastion).WithMany(p => p.BastionRooms)
+                .HasForeignKey(d => d.BastionId)
+                .HasConstraintName("FK_BastionRoom_CampaignBastions");
+        });
+
+        modelBuilder.Entity<BastionTurnSegment>(entity =>
+        {
+            entity.HasIndex(e => e.BastionId, "IX_BastionTurnSegments_BastionId");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_BastionTurnSegments_Id");
+            entity.Property(e => e.DateIssued)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_BTS_DateIssued");
+            entity.Property(e => e.LongRestsPerDay)
+                .HasDefaultValue((byte)2)
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_BTS_Rests");
+            entity.Property(e => e.RowVersion)
+                .IsRequired()
+                .IsRowVersion()
+                .IsConcurrencyToken();
+            entity.Property(e => e.Status)
+                .IsRequired()
+                .HasMaxLength(20)
+                .HasDefaultValue("Open")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_BTS_Status");
+            entity.Property(e => e.Title).HasMaxLength(120);
+
+            entity.HasOne(d => d.Bastion).WithMany(p => p.BastionTurnSegments)
+                .HasForeignKey(d => d.BastionId)
+                .HasConstraintName("FK_BTS_Bastion");
+
+            entity.HasOne(d => d.IssuedByUser).WithMany(p => p.BastionTurnSegments)
+                .HasForeignKey(d => d.IssuedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BTS_User");
+        });
+
+        modelBuilder.Entity<BastionTurnSegmentCharacter>(entity =>
+        {
+            entity.HasIndex(e => e.CharacterId, "IX_BTSC_CharacterId");
+
+            entity.HasIndex(e => e.SegmentId, "IX_BTSC_SegmentId");
+
+            entity.HasIndex(e => new { e.SegmentId, e.CharacterId }, "UQ_BTSC_SegmentCharacter").IsUnique();
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_BTSC_Id");
+            entity.Property(e => e.DateAdded)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_BTSC_DateAdded");
+
+            entity.HasOne(d => d.Character).WithMany(p => p.BastionTurnSegmentCharacters)
+                .HasForeignKey(d => d.CharacterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BTSC_Character");
+
+            entity.HasOne(d => d.Segment).WithMany(p => p.BastionTurnSegmentCharacters)
+                .HasForeignKey(d => d.SegmentId)
+                .HasConstraintName("FK_BTSC_Segment");
+        });
+
         modelBuilder.Entity<Campaign>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Campaign__3214EC07783CDB57");
@@ -63,6 +365,45 @@ public partial class CampaignManagerContext : DbContext
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(250);
+        });
+
+        modelBuilder.Entity<CampaignBastion>(entity =>
+        {
+            entity.HasIndex(e => e.CampaignId, "IX_CampaignBastions_CampaignId");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_CampaignBastions_Id");
+            entity.Property(e => e.CurrentTurn).HasAnnotation("Relational:DefaultConstraintName", "DF_CampaignBastions_CurrentTurn");
+            entity.Property(e => e.DateAdded)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_CampaignBastions_DateAdded");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_CampaignBastions_IsActive");
+            entity.Property(e => e.MaxHeight)
+                .HasDefaultValue(200)
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_CampaignBastions_MaxHeight");
+            entity.Property(e => e.MaxWidth)
+                .HasDefaultValue(200)
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_CampaignBastions_MaxWidth");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(150);
+            entity.Property(e => e.RowVersion)
+                .IsRequired()
+                .IsRowVersion()
+                .IsConcurrencyToken();
+
+            entity.HasOne(d => d.Campaign).WithMany(p => p.CampaignBastions)
+                .HasForeignKey(d => d.CampaignId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CampaignBastions_Campaigns");
+
+            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.CampaignBastions)
+                .HasForeignKey(d => d.CreatedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CampaignBastions_Users");
         });
 
         modelBuilder.Entity<CampaignCategoryContentXref>(entity =>
@@ -112,6 +453,39 @@ public partial class CampaignManagerContext : DbContext
                 .HasForeignKey(d => d.PermissionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__CampaignP__Permi__65370702");
+        });
+
+        modelBuilder.Entity<Character>(entity =>
+        {
+            entity.HasIndex(e => e.CampaignId, "IX_Characters_CampaignId");
+
+            entity.HasIndex(e => e.UserId, "IX_Characters_UserId");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_Characters_Id");
+            entity.Property(e => e.DateAdded)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_Characters_DateAdded");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_Characters_IsActive");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(120);
+            entity.Property(e => e.RowVersion)
+                .IsRequired()
+                .IsRowVersion()
+                .IsConcurrencyToken();
+            entity.Property(e => e.SortOrder).HasAnnotation("Relational:DefaultConstraintName", "DF_Characters_SortOrder");
+
+            entity.HasOne(d => d.Campaign).WithMany(p => p.Characters)
+                .HasForeignKey(d => d.CampaignId)
+                .HasConstraintName("FK_Characters_Campaign");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Characters)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_Characters_User");
         });
 
         modelBuilder.Entity<ContentType>(entity =>
@@ -166,6 +540,36 @@ public partial class CampaignManagerContext : DbContext
                 .HasForeignKey(d => d.PersonaId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Users__PersonaId__4222D4EF");
+        });
+
+        modelBuilder.Entity<UserBastion>(entity =>
+        {
+            entity.ToTable("UserBastion");
+
+            entity.HasIndex(e => e.UserId, "IX_UserBastion_UserId");
+
+            entity.HasIndex(e => new { e.BastionId, e.UserId }, "UQ_UserBastion_Bastion_User").IsUnique();
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_UserBastion_Id");
+            entity.Property(e => e.DateAdded)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_UserBastion_DateAdded");
+
+            entity.HasOne(d => d.BastionAccessLevel).WithMany(p => p.UserBastions)
+                .HasForeignKey(d => d.BastionAccessLevelId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UserBastion_BastionAccessLevel");
+
+            entity.HasOne(d => d.Bastion).WithMany(p => p.UserBastions)
+                .HasForeignKey(d => d.BastionId)
+                .HasConstraintName("FK_UserBastion_CampaignBastions");
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserBastions)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UserBastion_Users");
         });
 
         modelBuilder.Entity<UserCampaignPersona>(entity =>

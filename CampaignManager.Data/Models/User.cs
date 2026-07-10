@@ -25,7 +25,17 @@ public partial class User
 
     public bool IsVerified { get; set; }
 
+    public virtual ICollection<BastionActivity> BastionActivities { get; set; } = new List<BastionActivity>();
+
+    public virtual ICollection<BastionTurnSegment> BastionTurnSegments { get; set; } = new List<BastionTurnSegment>();
+
+    public virtual ICollection<CampaignBastion> CampaignBastions { get; set; } = new List<CampaignBastion>();
+
+    public virtual ICollection<Character> Characters { get; set; } = new List<Character>();
+
     public virtual SitePersona Persona { get; set; }
+
+    public virtual ICollection<UserBastion> UserBastions { get; set; } = new List<UserBastion>();
 
     public virtual ICollection<UserCampaignPersona> UserCampaignPersonas { get; set; } = new List<UserCampaignPersona>();
 }

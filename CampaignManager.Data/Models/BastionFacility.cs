@@ -30,4 +30,6 @@ public partial class BastionFacility
     public int? Page { get; set; }
 
     public DateTime DateAdded { get; set; }
+
+    public virtual ICollection<BastionRoom> BastionRooms { get; set; } = new List<BastionRoom>();
 }

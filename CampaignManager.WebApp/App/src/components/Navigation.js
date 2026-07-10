@@ -64,6 +64,11 @@ export const Navigation = (props) => {
             toggleDrawer('playerTools', ['Sphere Converter', 'Bastion Facilities']);
             return;
         }
+
+        if (route === 'admin') {
+            toggleDrawer('admin', ['Data Tools']);
+            return;
+        }
     };
 
     const handleDrawerOptionClick = (option) => {
@@ -119,6 +124,13 @@ export const Navigation = (props) => {
                         sx={{ flexGrow: 1, color: 'white', fontWeight: 600, textTransform: 'none' }}>
                         Player Tools
                     </Button>
+
+                    {props.user?.SitePersonaName === 'Administrator' && (
+                        <Button onClick={() => handleTopNavClick('admin')}
+                            sx={{ flexGrow: 1, color: 'white', fontWeight: 600, textTransform: 'none' }}>
+                            Admin
+                        </Button>
+                    )}
 
                     <Button
                         onClick={(e) => setAccountAnchor(e.currentTarget)}

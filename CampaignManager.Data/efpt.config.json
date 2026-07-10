@@ -19,7 +19,51 @@
    "T4TemplatePath": null,
    "Tables": [
       {
+         "Name": "[dbo].[BastionAccessLevel]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BastionActivities]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BastionActivityHirelings]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BastionActivityLogs]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BastionCharacters]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[BastionFacilities]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BastionFloor]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BastionHireling]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BastionRoom]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BastionTurnSegmentCharacters]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BastionTurnSegments]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CampaignBastions]",
          "ObjectType": 0
       },
       {
@@ -39,6 +83,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[Characters]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[ContentTypes]",
          "ObjectType": 0
       },
@@ -48,6 +96,10 @@
       },
       {
          "Name": "[dbo].[SitePersonas]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[UserBastion]",
          "ObjectType": 0
       },
       {

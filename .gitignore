@@ -364,3 +364,4 @@ FodyWeavers.xsd
 
 # Local connection strings with credentials - never commit
 DatabaseConnection.json
+/db

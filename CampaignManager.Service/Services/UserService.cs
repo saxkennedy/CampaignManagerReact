@@ -53,12 +53,10 @@ namespace CampaignManager.Services.Services
             bool valid;
             if (user.Password.StartsWith("$2"))
             {
-                // Already hashed — verify with bcrypt
                 valid = BCrypt.Net.BCrypt.Verify(password, user.Password);
             }
             else
             {
-                // Plaintext (legacy) — compare directly, then migrate to hash
                 valid = user.Password == password;
                 if (valid)
                 {
@@ -226,11 +224,14 @@ namespace CampaignManager.Services.Services
 
         private async Task<UserResponse> BuildUserResponse(User user)
         {
-            // Personas (per campaign) come from the unchanged sproc...
+            var sitePersonaName = await CampaignManagerContext.SitePersonas
+                .Where(p => p.Id == user.PersonaId)
+                .Select(p => p.DisplayName)
+                .FirstOrDefaultAsync();
+
             var personaRows = await CampaignManagerContext.Procedures.GetCampaignPersonaAsync(user.Id);
             var personaIds = personaRows.Select(r => r.CampaignPersonaId).ToList();
 
-            // ...and we attach each persona's granted permission names from the xref table.
             var grants = await CampaignManagerContext.CampaignPersonaPermissions
                 .Where(x => personaIds.Contains(x.CampaignPersonaId))
                 .Select(x => new { x.CampaignPersonaId, x.Permission.DisplayName })
@@ -258,6 +259,7 @@ namespace CampaignManager.Services.Services
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Persona = user.PersonaId.ToString(),
+                SitePersonaName = sitePersonaName,
                 IsVerified = user.IsVerified,
                 CampaignPersonas = campaignPersonas
             };

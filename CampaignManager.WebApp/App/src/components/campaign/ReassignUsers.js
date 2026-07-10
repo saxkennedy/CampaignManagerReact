@@ -6,10 +6,12 @@ import {
 } from '@mui/material';
 import CampaignAdminService from '../../api/CampaignAdminService';
 import PotionLoader from '../utilities/PotionLoader';
+import UserCharactersDialog from './UserCharactersDialog';
 
 const pick = (o, P, c) => o?.[P] ?? o?.[c];
 
-const ReassignUsers = ({ campaignId }) => {
+const ReassignUsers = ({ campaignId, canManageCharacters = false }) => {
+    const [charsFor, setCharsFor] = useState(null); // member whose character modal is open
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [members, setMembers] = useState([]);
@@ -196,6 +198,7 @@ const ReassignUsers = ({ campaignId }) => {
                                     </TableSortLabel>
                                 </TableCell>
                                 <TableCell>Move To</TableCell>
+                                {canManageCharacters && <TableCell align="right">Characters</TableCell>}
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -230,12 +233,19 @@ const ReassignUsers = ({ campaignId }) => {
                                                 </Select>
                                             </FormControl>
                                         </TableCell>
+                                        {canManageCharacters && (
+                                            <TableCell align="right">
+                                                <Button size="small" variant="outlined" onClick={() => setCharsFor(m)}>
+                                                    Characters
+                                                </Button>
+                                            </TableCell>
+                                        )}
                                     </TableRow>
                                 );
                             })}
                             {visible.length === 0 && (
                                 <TableRow>
-                                    <TableCell colSpan={3}>
+                                    <TableCell colSpan={canManageCharacters ? 4 : 3}>
                                         <Typography variant="body2" color="text.secondary">No members match your filters.</Typography>
                                     </TableCell>
                                 </TableRow>
@@ -255,6 +265,16 @@ const ReassignUsers = ({ campaignId }) => {
                     <PotionLoader label="Saving reassignments…" minHeight={120} />
                 </DialogContent>
             </Dialog>
+
+            {canManageCharacters && (
+                <UserCharactersDialog
+                    open={!!charsFor}
+                    member={charsFor ? { userId: charsFor.userId, label: memberName(charsFor), email: charsFor.email } : null}
+                    campaignId={campaignId}
+                    onClose={() => setCharsFor(null)}
+                    onSaved={load}
+                />
+            )}
         </Box>
     );
 };

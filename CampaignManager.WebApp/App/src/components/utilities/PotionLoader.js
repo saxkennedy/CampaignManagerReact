@@ -1,118 +1,68 @@
-﻿import React from 'react';
+import React from 'react';
 import { Box } from '@mui/material';
 import { keyframes } from '@mui/system';
 
-// D&D-themed bubbling potion loader
-const bubbleAnim = keyframes`
-  0%   { transform: translateY(12px) scale(0.6); opacity: 0; }
-  20%  { opacity: 1; }
-  100% { transform: translateY(-46px) scale(1); opacity: 0; }
-`;
+// Soft pulsing glow around the whole bottle.
 const glowAnim = keyframes`
-  0%, 100% { box-shadow: 0 0 8px rgba(86, 115, 235, .35), inset 0 0 12px rgba(86,115,235,.25); }
-  50%      { box-shadow: 0 0 18px rgba(86,115,235,.55), inset 0 0 22px rgba(86,115,235,.45); }
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(86,115,235,.4)); }
+  50%      { filter: drop-shadow(0 0 11px rgba(86,115,235,.75)); }
 `;
 
+// Classic potion-bottle silhouette: rounded bulbous body, shoulders curving up to a
+// narrow neck and mouth. Symmetric about x = 50 in a 0 0 100 140 viewBox.
+const BOTTLE =
+    'M43 28 L43 49 C41 61 15 65 15 90 C15 116 25 132 50 132 ' +
+    'C75 132 85 116 85 90 C85 65 59 61 57 49 L57 28 Z';
+
 const PotionLoader = ({ label = 'Brewing your lore…', minHeight = 160 }) => (
-    <Box
-        sx={{
-            width: '100%',
-            minHeight,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            p: 1.5,
-        }}
-    >
+    <Box sx={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', minHeight, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 1.5, overflow: 'hidden' }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-            {/* Bottle */}
             <Box
-                sx={{
-                    position: 'relative',
-                    width: 92,
-                    height: 116,
-                    borderRadius: '0 0 38px 38px',
-                    border: '3px solid rgba(22,22,22,.35)',
-                    background:
-                        'linear-gradient(180deg, rgba(255,255,255,.25) 0%, rgba(255,255,255,.05) 40%, rgba(255,255,255,0) 100%)',
-                    overflow: 'hidden',
-                    '&::before': {
-                        content: '""',
-                        position: 'absolute',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        top: -16,
-                        width: 40,
-                        height: 20,
-                        border: '3px solid rgba(22,22,22,.35)',
-                        borderBottom: 'none',
-                        borderRadius: '8px 8px 0 0',
-                        background: 'rgba(250,250,250,.55)',
-                    },
-                    '&::after': {
-                        content: '""',
-                        position: 'absolute',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        top: -28,
-                        width: 28,
-                        height: 14,
-                        borderRadius: '4px',
-                        background: '#7c5a2b',
-                        boxShadow: 'inset 0 -2px 0 rgba(0,0,0,.2)',
-                    },
-                    animation: `${glowAnim} 2.2s ease-in-out infinite`,
-                }}
+                component="svg"
+                viewBox="0 0 100 140"
+                sx={{ width: 84, height: 118, overflow: 'visible', animation: `${glowAnim} 2.2s ease-in-out infinite` }}
             >
-                {/* Liquid */}
-                <Box
-                    sx={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '56%',
-                        background:
-                            'radial-gradient(60% 70% at 50% 0%, rgba(160,190,255,.85) 0%, rgba(116,148,255,.9) 55%, rgba(86,115,235,.95) 100%)',
-                        borderTop: '2px solid rgba(255,255,255,.6)',
-                    }}
-                />
-                {/* Bubbles */}
-                {[0, 1, 2, 3, 4].map((i) => (
-                    <Box
-                        key={i}
-                        sx={{
-                            position: 'absolute',
-                            bottom: 18,
-                            left: `${18 + i * 14}%`,
-                            width: 8 + (i % 2) * 2,
-                            height: 8 + (i % 2) * 2,
-                            borderRadius: '50%',
-                            background: 'rgba(255,255,255,.85)',
-                            filter: 'blur(0.2px)',
-                            animation: `${bubbleAnim} ${1.6 + i * 0.18}s ease-in infinite`,
-                            animationDelay: `${i * 0.12}s`,
-                        }}
-                    />
-                ))}
-                {/* Tiny sparkles */}
-                {[0, 1, 2].map((i) => (
-                    <Box
-                        key={`spark-${i}`}
-                        sx={{
-                            position: 'absolute',
-                            top: `${18 + i * 22}%`,
-                            right: `${10 + i * 18}%`,
-                            width: 6,
-                            height: 6,
-                            borderRadius: '50%',
-                            background: 'rgba(200,220,255,.9)',
-                            boxShadow: '0 0 10px rgba(140,170,255,.9)',
-                            opacity: 0.75,
-                        }}
-                    />
-                ))}
+                <defs>
+                    <clipPath id="pl-bottle"><path d={BOTTLE} /></clipPath>
+                    <linearGradient id="pl-liquid" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stopColor="#a6bcff" />
+                        <stop offset="0.55" stopColor="#7494ff" />
+                        <stop offset="1" stopColor="#5673eb" />
+                    </linearGradient>
+                    <linearGradient id="pl-glass" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stopColor="rgba(255,255,255,.4)" />
+                        <stop offset="1" stopColor="rgba(255,255,255,.05)" />
+                    </linearGradient>
+                </defs>
+
+                {/* glass body */}
+                <path d={BOTTLE} fill="url(#pl-glass)" />
+
+                {/* liquid, surface + bubbles, clipped to the bottle */}
+                <g clipPath="url(#pl-bottle)">
+                    <rect x="0" y="74" width="100" height="66" fill="url(#pl-liquid)" />
+                    <rect x="0" y="73" width="100" height="2" fill="rgba(255,255,255,.6)" />
+                    {[0, 1, 2, 3, 4].map((i) => {
+                        const dur = `${1.6 + i * 0.2}s`;
+                        return (
+                            <circle key={i} cx={30 + i * 10} r={2 + (i % 2)} fill="rgba(255,255,255,.85)">
+                                <animate attributeName="cy" values="126;80" dur={dur} begin={`${i * 0.15}s`} repeatCount="indefinite" />
+                                <animate attributeName="opacity" values="0;1;1;0" dur={dur} begin={`${i * 0.15}s`} repeatCount="indefinite" />
+                            </circle>
+                        );
+                    })}
+                    {/* glass highlight streak */}
+                    <path d="M26 66 C23 90 26 114 34 128" stroke="rgba(255,255,255,.5)" strokeWidth="3.5" strokeLinecap="round" fill="none" opacity="0.6" />
+                </g>
+
+                {/* glass outline */}
+                <path d={BOTTLE} fill="none" stroke="rgba(22,22,22,.4)" strokeWidth="3" strokeLinejoin="round" />
+
+                {/* mouth lip + cork */}
+                <rect x="37" y="21" width="26" height="9" rx="3" fill="rgba(250,250,250,.75)" stroke="rgba(22,22,22,.4)" strokeWidth="3" />
+                <rect x="42" y="8" width="16" height="14" rx="2.5" fill="#7c5a2b" stroke="rgba(0,0,0,.18)" strokeWidth="1.5" />
             </Box>
+
             <Box
                 sx={{
                     fontFamily: `'Cinzel', ui-serif, Georgia, serif`,

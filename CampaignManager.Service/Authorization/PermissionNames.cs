@@ -13,5 +13,6 @@ namespace CampaignManager.Services.Authorization
         public const string CanDeleteContent = "CanDeleteContent";
         public const string CanManagePersonas = "CanManagePersonas";
         public const string CanReassignUsers = "CanReassignUsers";
+        public const string CreateBastion = "CreateBastion";
     }
 }

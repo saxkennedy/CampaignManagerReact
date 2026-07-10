@@ -348,11 +348,21 @@ namespace api.Authentication
                 }
                 catch (Exception ex)
                 {
+                    // A broken mail provider used to hide behind a 200 OK here (it took a
+                    // month to notice SendPulse had rotated our SMTP password). Surface it.
+                    // This only reveals that the address exists when mail is actually down —
+                    // an acceptable trade for not silently dropping resets again.
                     _log.LogError(ex, "Failed to send password reset email to {Email}", body.Email);
+                    var fail = req.CreateResponse(HttpStatusCode.BadGateway);
+                    await fail.WriteAsJsonAsync(new
+                    {
+                        error = "We couldn't send the reset email right now. Please try again shortly."
+                    });
+                    return fail;
                 }
             }
 
-            // Always return OK — don't leak whether the email exists
+            // For an unknown email we still return OK so we don't leak whether it exists.
             return req.CreateResponse(HttpStatusCode.OK);
         }
 

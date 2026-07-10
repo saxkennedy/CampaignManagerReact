@@ -6,6 +6,7 @@ import ContentViewer from '../utilities/ContentViewer';
 import CampaignAdminTabs from './CampaignAdminTabs';
 import CampaignContentService from '../../api/CampaignContentService';
 import PotionLoader from '../utilities/PotionLoader';
+import MyCharacters from './MyCharacters';
 import { getAdminCapabilities } from './campaignPermissions';
 
 // ---------- helpers ----------
@@ -136,6 +137,7 @@ export const CampaignDashboard = (props) => {
     const [navData, setNavData] = React.useState([]); // dynamic replacement for realmsBetwixt
     const [expanded, setExpanded] = React.useState({});
     const [loading, setLoading] = React.useState(true);
+    const [myCharsOpen, setMyCharsOpen] = React.useState(false);
 
     // Permissions:
     // Campaign Administration shows for anyone holding an admin permission in this campaign.
@@ -328,6 +330,39 @@ export const CampaignDashboard = (props) => {
                     </ListItem>
                 )}
 
+                {/* Bastions (visible to all members; access enforced server-side) */}
+                <ListItem
+                    button
+                    onClick={() => campaignId && navigate(`/campaigns/${campaignId}/bastions`)}
+                    sx={{
+                        mb: 1,
+                        borderRadius: 1.5,
+                        backgroundColor: 'primary.main',
+                        color: 'white',
+                        fontWeight: 700,
+                        '&:hover': { backgroundColor: 'primary.dark' },
+                    }}
+                >
+                    <ListItemText primary="Bastions" />
+                </ListItem>
+
+                {/* My Characters (any member; edit your own character names) */}
+                <ListItem
+                    button
+                    onClick={() => setMyCharsOpen(true)}
+                    sx={{
+                        mb: 1,
+                        borderRadius: 1.5,
+                        border: '1px solid',
+                        borderColor: 'primary.main',
+                        color: 'primary.main',
+                        fontWeight: 700,
+                        '&:hover': { backgroundColor: 'primary.main', color: 'white' },
+                    }}
+                >
+                    <ListItemText primary="My Characters" />
+                </ListItem>
+
                 {/* Loading → Empty → Tree */}
                 {loading ? (
                     <PotionLoader label="Brewing your lore…" />
@@ -356,6 +391,10 @@ export const CampaignDashboard = (props) => {
                     </Box>
                 )}
             </Box>
+
+            {campaignId && (
+                <MyCharacters campaignId={campaignId} open={myCharsOpen} onClose={() => setMyCharsOpen(false)} />
+            )}
         </Box>
     );
 };
