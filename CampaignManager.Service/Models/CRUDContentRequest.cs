@@ -20,6 +20,7 @@ namespace CampaignManager.Services.Models
         public string SimpleContent {  get; set; }
         public bool Delete { get; set; } = false;
         public Guid ContentTypeId { get; set; }
+        public bool Editable { get; set; } = false;
 
     }
 }

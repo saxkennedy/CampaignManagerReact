@@ -2,6 +2,30 @@ import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Container, TextField, Button, Typography, Box, Alert } from '@mui/material';
 import UserService from '../api/UserService';
+import { isCampaignMember, NO_ACCESS_NOTICE } from './campaign/campaignPermissions';
+import {
+    authCardSx,
+    authTitleSx,
+    authSubtitleSx,
+    darkFieldSx,
+    goldButtonSx,
+    soulslike,
+} from '../theme/soulslike';
+
+// Where to land after signing in. Honours the path a shared link was headed for,
+// but only for in-app paths the freshly-signed-in user can actually reach.
+const destinationFor = (user, returnTo) => {
+    const isInAppPath =
+        typeof returnTo === 'string' && returnTo.startsWith('/') && !returnTo.startsWith('//');
+    if (!isInAppPath || returnTo === '/login') return { path: '/dashboard' };
+
+    const campaign = returnTo.match(/^\/campaigns\/([^/?#]+)/i);
+    if (campaign && !isCampaignMember(user, campaign[1])) {
+        return { path: '/dashboard', state: { notice: NO_ACCESS_NOTICE } };
+    }
+
+    return { path: returnTo };
+};
 
 export const Login = (props) => {
     const [email, setEmail] = useState('');
@@ -25,7 +49,8 @@ export const Login = (props) => {
 
             if (res) {
                 props.setUser(res);
-                navigate('/dashboard');
+                const { path, state } = destinationFor(res, location.state?.returnTo);
+                navigate(path, { replace: true, state });
             } else {
                 setError('Login failed');
             }
@@ -66,39 +91,16 @@ export const Login = (props) => {
                     p: 0,
                 }}
             >
-                <Box
-                    sx={{
-                        background: '#FCF5E5',
-                        borderRadius: 4,
-                        boxShadow: 3,
-                        p: { xs: 3, sm: 6 },
-                        width: { xs: '100%', sm: 420 },
-                        mx: 'auto',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                    }}
-                >
-                    <Typography
-                        variant="h3"
-                        component="h1"
-                        gutterBottom
-                        sx={{
-                            fontWeight: 700,
-                            color: '#1976d2',
-                            mb: 2,
-                            textAlign: 'center',
-                        }}
-                    >
-                        Ender's Campaign Manager (ALPHA)
+                <Box sx={authCardSx}>
+                    <Typography variant="h3" component="h1" gutterBottom sx={authTitleSx}>
+                        Ender's Campaign Manager
                     </Typography>
 
-                    <Typography
-                        variant="h5"
-                        component="h2"
-                        gutterBottom
-                        sx={{ mb: 3, color: 'text.secondary' }}
-                    >
+                    <Typography component="div" sx={{ ...authSubtitleSx, mt: -1, mb: 2.5 }}>
+                        ⚜ Alpha ⚜
+                    </Typography>
+
+                    <Typography variant="h6" component="h2" gutterBottom sx={authSubtitleSx}>
                         Login to your account
                     </Typography>
 
@@ -123,6 +125,7 @@ export const Login = (props) => {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 variant="outlined"
+                                sx={darkFieldSx}
                                 autoComplete="username"
                             />
                         </Box>
@@ -134,22 +137,27 @@ export const Login = (props) => {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 variant="outlined"
+                                sx={darkFieldSx}
                                 autoComplete="current-password"
                             />
                         </Box>
 
                         <Typography variant="body2" align="right" sx={{ mb: 1 }}>
-                            <Link to="/forgot-password">Forgot password?</Link>
+                            <Link
+                                to="/forgot-password"
+                                style={{ color: soulslike.parchment, textDecorationColor: soulslike.edge }}
+                            >
+                                Forgot password?
+                            </Link>
                         </Typography>
 
                         <Button
                             type="submit"
                             onClick={handleSubmit}
                             variant="contained"
-                            color="primary"
                             fullWidth
                             size="large"
-                            sx={{ py: 1.5, fontWeight: 600 }}
+                            sx={{ ...goldButtonSx, py: 1.5 }}
                         >
                             Login
                         </Button>
@@ -179,10 +187,21 @@ export const Login = (props) => {
                     <Button
                         onClick={handleSignUp}
                         variant="outlined"
-                        color="secondary"
                         fullWidth
                         size="large"
-                        sx={{ mt: 2, py: 1.5, fontWeight: 600 }}
+                        sx={{
+                            mt: 2,
+                            py: 1.5,
+                            color: soulslike.goldBright,
+                            borderColor: soulslike.edge,
+                            fontFamily: `'Cinzel', ui-serif, Georgia, serif`,
+                            fontWeight: 600,
+                            letterSpacing: '0.06em',
+                            '&:hover': {
+                                borderColor: soulslike.gold,
+                                backgroundColor: 'rgba(200,164,77,0.12)',
+                            },
+                        }}
                     >
                         Sign Up
                     </Button>

@@ -52,7 +52,17 @@
       "Bash(python -c \"import json; d=json.load\\(open\\('bastions.json',encoding='utf-8'\\)\\); import collections; c=collections.Counter\\(f.get\\('facilityType'\\) for f in d['facility']\\); [print\\(f'{v:3}  {k}'\\) for k,v in c.most_common\\(\\)]\")",
       "Bash(python -c \"import json; d=json.load\\(open\\('bastions.json',encoding='utf-8'\\)\\); s=set\\(\\); [s.update\\(f.get\\('space',[]\\)\\) for f in d['facility']]; print\\(sorted\\(s\\)\\)\")",
       "Bash(python -c \"import json; d=json.load\\(open\\('bastions.json',encoding='utf-8'\\)\\); b=[f for f in d['facility'] if f.get\\('facilityType'\\)=='basic']; print\\(json.dumps\\(b[0],indent=1\\)[:600] if b else 'no basic facilities in this file'\\)\")",
-      "Bash(CI=true npx --no-install react-scripts build)"
+      "Bash(CI=true npx --no-install react-scripts build)",
+      "Bash(claude update)",
+      "PowerShell(Get-Command *)",
+      "Bash(curl -sL \"https://docs.google.com/document/d/1N-RwsAFNiwxyqjrB_pJtpxK7SatvUL5W9qxF3dWLLdA/export?format=html\" -o feru.html)",
+      "Bash(node -e ' *)",
+      "Bash(curl -s -m 20 -o live.html -w \"HTTP %{http_code}  bytes=%{size_download}\\\\n\" \"http://localhost:7071/api/doc-html/1N-RwsAFNiwxyqjrB_pJtpxK7SatvUL5W9qxF3dWLLdA\")",
+      "Bash(curl -s -m 30 \"http://localhost:7071/api/campaigncontent/7dcc9c48-0734-40e6-95bf-660b0a5ca40c/structure\" -o structure.json -w \"HTTP %{http_code} bytes=%{size_download}\\\\n\")",
+      "Bash(curl -s -m 30 \"http://localhost:7071/api/campaigncontent/7dcc9c48-0734-40e6-95bf-660b0a5ca40c/structure\" -o structure2.json)",
+      "Bash(curl -s -m 45 \"http://localhost:7071/api/campaigncontent/7dcc9c48-0734-40e6-95bf-660b0a5ca40c/structure\" -o structure3.json -w \"HTTP %{http_code}\\\\n\")",
+      "Bash(echo \"exit=$?\")",
+      "Bash(git add *)"
     ]
   }
 }

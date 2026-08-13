@@ -40,15 +40,43 @@ namespace api
                 return bad;
             }
 
-            // Inject tiny style to set background; after <head>
+            html = CollapseParagraphSpacing(html);
+
+            // Injected *after* the export's own <style> so these rules win, hence the
+            // end of <head> rather than the start.
             var inject = """
+<base target="_blank">
 <style>
-  html, body { background:#F2E8D5 !important; margin:0; }
-  /* Optional: constrain content width for nicer reading */
-  body > * { margin-left:auto; margin-right:auto; max-width: 900px; }
+  html { background:#F2E8D5; }
+  body { background:transparent !important; margin:0 auto; }
+
+  /* Docs applies paragraph spacing to a list as a whole, not to each item, but
+     the export stamps every <li> with the same spacing class as a <p>. Zeroing
+     it here leaves the space around the list (contributed by the neighbouring
+     paragraphs) while items sit flush, the way they do in Docs. */
+  li {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  img { max-width: 100%; height: auto; }
 </style>
 """;
-            html = Regex.Replace(html, "<head(.*?)>", m => m.Value + inject, RegexOptions.IgnoreCase);
+
+            if (Regex.IsMatch(html, "</head>", RegexOptions.IgnoreCase))
+            {
+                html = Regex.Replace(html, "</head>", m => inject + m.Value, RegexOptions.IgnoreCase);
+            }
+            else if (Regex.IsMatch(html, "<body[^>]*>", RegexOptions.IgnoreCase))
+            {
+                html = Regex.Replace(html, "<body[^>]*>", m => m.Value + inject, RegexOptions.IgnoreCase);
+            }
+            else
+            {
+                html = inject + html;
+            }
 
             var res = req.CreateResponse(HttpStatusCode.OK);
             res.Headers.Add("Content-Type", "text/html; charset=utf-8");
@@ -57,5 +85,35 @@ namespace api
             await res.WriteStringAsync(html, Encoding.UTF8);
             return res;
         }
+
+        /// <summary>
+        /// Google Docs lays paragraphs out with collapsing "space above/below", but the
+        /// HTML export emits that spacing as padding — which never collapses. Two
+        /// adjacent paragraphs styled "12pt above, 12pt below" therefore render with a
+        /// 24pt gap in a browser where Docs itself shows 12pt, and the whole document
+        /// reads as double-spaced.
+        ///
+        /// Rewriting those declarations as margins restores the collapsing. The swap is
+        /// limited to rules carrying "orphans", which is the signature of the export's
+        /// paragraph and heading styles — table-cell and page-frame padding (emitted as
+        /// the `padding` shorthand) is left untouched.
+        /// </summary>
+        internal static string CollapseParagraphSpacing(string html) =>
+            Regex.Replace(
+                html,
+                @"(<style[^>]*>)(.*?)(</style>)",
+                m => m.Groups[1].Value + SwapBlockPadding(m.Groups[2].Value) + m.Groups[3].Value,
+                RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
+        private static string SwapBlockPadding(string css) =>
+            Regex.Replace(css, @"\{[^{}]*\}", m =>
+            {
+                var block = m.Value;
+                if (block.IndexOf("orphans", StringComparison.OrdinalIgnoreCase) < 0) return block;
+
+                block = Regex.Replace(block, @"padding-top\s*:", "margin-top:", RegexOptions.IgnoreCase);
+                block = Regex.Replace(block, @"padding-bottom\s*:", "margin-bottom:", RegexOptions.IgnoreCase);
+                return block;
+            });
     }
 }

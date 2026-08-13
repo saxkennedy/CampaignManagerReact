@@ -1,13 +1,23 @@
 ﻿// components/campaign/CampaignDashboard.js
 import React from 'react';
-import { List, ListItem, ListItemText, Collapse, Box } from '@mui/material';
-import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { List, ListItem, ListItemText, Collapse, Box, IconButton } from '@mui/material';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import { useParams, useLocation, useNavigate, useMatch } from 'react-router-dom';
 import ContentViewer from '../utilities/ContentViewer';
 import CampaignAdminTabs from './CampaignAdminTabs';
 import CampaignContentService from '../../api/CampaignContentService';
 import PotionLoader from '../utilities/PotionLoader';
 import MyCharacters from './MyCharacters';
-import { getAdminCapabilities } from './campaignPermissions';
+import { getAdminCapabilities, isCampaignMember, NO_ACCESS_NOTICE } from './campaignPermissions';
+import {
+    sidebarSx,
+    sidebarPrimarySx,
+    sidebarOutlinedSx,
+    sidebarMutedSx,
+    treeItemSx,
+    treeDisabledSx,
+    chevronButtonSx,
+} from '../../theme/soulslike';
 
 // ---------- helpers ----------
 const pick = (obj, pascal, camel) => obj?.[pascal] ?? obj?.[camel];
@@ -70,6 +80,7 @@ const mapToNavShape = (node) => {
         displayName,
         contentLink,
         accessHierarchyLevel,
+        editable: Boolean(pick(node.raw, 'Editable', 'editable')),
         children: (node.children || []).map(mapToNavShape),
     };
 };
@@ -83,7 +94,9 @@ const filterByAccess = (nodes, userLevel) => {
             ? userLevel <= n.accessHierarchyLevel
             : true; // if missing, default to visible
         if (allowed || kids.length > 0) {
-            out.push({ ...n, children: kids });
+            // A node the user can't read is still kept when it has readable
+            // children, but only as a folder — never with its own content.
+            out.push({ ...n, contentLink: allowed ? n.contentLink : '', children: kids });
         }
     }
     return out;
@@ -108,6 +121,27 @@ const getUserHierarchyForCampaign = (user, campaignId) => {
     return Math.min(...levels);
 };
 
+// Stable key for expand/collapse state. Ids are unique; fall back to the old
+// composite key for the (unexpected) case of a node without one.
+const nodeKey = (node, level = 0) =>
+    node?.id
+        ? `id:${String(node.id).toLowerCase()}`
+        : `${node?.displayName}_${node?.contentLink || 'nolink'}_${level}`;
+
+// child key -> ordered list of ancestor keys, so a deep link can open its branch
+const buildAncestorIndex = (nodes) => {
+    const map = new Map();
+    const walk = (xs, trail) => {
+        for (const n of xs) {
+            const key = nodeKey(n);
+            map.set(key, trail);
+            if (n.children?.length) walk(n.children, [...trail, key]);
+        }
+    };
+    walk(nodes || [], []);
+    return map;
+};
+
 // Build a pretty URL for a node (root if no node)
 const routeForNode = (campaignId, node) => {
     if (!node?.id) return `/campaigns/${campaignId}`;
@@ -122,19 +156,28 @@ export const CampaignDashboard = (props) => {
     const location = useLocation();
     const navigate = useNavigate();
 
+    // The URL is the source of truth — a pasted link must win over whichever
+    // campaign happened to be active in this session.
     const campaignId =
+        params.campaignId ??
         location.state?.campaignId ??
         props.activeCampaignId ??
-        params.campaignId ??
         null;
 
     const user = props?.user;
 
     const [selectedRoute, setSelectedRoute] = React.useState(null);
     const [selectedTitle, setSelectedTitle] = React.useState('');
-    const [adminMode, setAdminMode] = React.useState(false);
+    const [selectedId, setSelectedId] = React.useState(null);
+    const [selectedEditable, setSelectedEditable] = React.useState(false);
+    // Derived from the URL rather than held in state: the content-selection effect
+    // below runs on every navigation and would otherwise reset it mid-click.
+    const adminMode = !!useMatch('/campaigns/:campaignId/admin');
 
     const [navData, setNavData] = React.useState([]); // dynamic replacement for realmsBetwixt
+    // Which campaign navData actually describes — guards against acting on the
+    // previous campaign's tree while a new one is still loading.
+    const [navCampaignId, setNavCampaignId] = React.useState(null);
     const [expanded, setExpanded] = React.useState({});
     const [loading, setLoading] = React.useState(true);
     const [myCharsOpen, setMyCharsOpen] = React.useState(false);
@@ -151,6 +194,14 @@ export const CampaignDashboard = (props) => {
         [user, campaignId]
     );
 
+    // A shared link may point at a campaign the viewer isn't part of: send them
+    // to the dashboard with a notice rather than showing an empty campaign.
+    React.useEffect(() => {
+        if (!user || !campaignId) return;
+        if (isCampaignMember(user, campaignId)) return;
+        navigate('/dashboard', { replace: true, state: { notice: NO_ACCESS_NOTICE } });
+    }, [user, campaignId, navigate]);
+
     // Load structure dynamically and shape it for the left nav
     React.useEffect(() => {
         let cancelled = false;
@@ -159,6 +210,7 @@ export const CampaignDashboard = (props) => {
                 setLoading(true);
                 if (!campaignId) {
                     setNavData([]);
+                    setNavCampaignId(null);
                     return;
                 }
                 const resp = await CampaignContentService.getStructure(campaignId);
@@ -168,9 +220,17 @@ export const CampaignDashboard = (props) => {
                 const filtered = Number.isFinite(userHierarchy)
                     ? filterByAccess(tree, userHierarchy)
                     : [];
-                if (!cancelled) setNavData(filtered);
+                if (!cancelled) {
+                    setNavData(filtered);
+                    setNavCampaignId(campaignId);
+                }
             } catch {
-                if (!cancelled) setNavData([]);
+                // No usable tree — a failed load must not be mistaken for
+                // "this content doesn't exist for you".
+                if (!cancelled) {
+                    setNavData([]);
+                    setNavCampaignId(null);
+                }
             } finally {
                 if (!cancelled) setLoading(false);
             }
@@ -196,12 +256,34 @@ export const CampaignDashboard = (props) => {
         return map;
     }, [navData]);
 
+    // ancestors of every node, for opening a branch when arriving via a link
+    const ancestorsByKey = React.useMemo(() => buildAncestorIndex(navData), [navData]);
+
+    const openBranchTo = React.useCallback(
+        (node) => {
+            const trail = ancestorsByKey.get(nodeKey(node));
+            if (!trail?.length) return;
+            setExpanded((prev) => {
+                const next = { ...prev };
+                trail.forEach((k) => { next[k] = true; });
+                return next;
+            });
+        },
+        [ancestorsByKey]
+    );
+
     // When user clicks a node in the tree: open doc and push pretty URL
     const handleNavigateNode = (node) => {
         if (!node?.contentLink) return;
-        setAdminMode(false);
         setSelectedRoute(node.contentLink);
         setSelectedTitle(node.displayName || 'Campaign Document');
+        setSelectedId(node.id ?? null);
+        setSelectedEditable(!!node.editable);
+
+        // A parent with its own content opens that content *and* reveals its children.
+        if (node.children?.length) {
+            setExpanded((prev) => ({ ...prev, [nodeKey(node)]: true }));
+        }
 
         // push a readable path (requires routes defined in App.js)
         if (campaignId) {
@@ -219,37 +301,65 @@ export const CampaignDashboard = (props) => {
         const contentId = params.contentId || null;
 
         if (!contentId) {
-            // campaign root
-            setAdminMode(false);
+            // campaign root (or the admin route) — nothing selected
             setSelectedRoute(null);
             setSelectedTitle('');
+            setSelectedId(null);
+            setSelectedEditable(false);
             return;
         }
 
+        // Only judge reachability against this campaign's fully-loaded tree.
+        if (loading || navCampaignId !== campaignId) return;
+
         const node = indexById.get(String(contentId).toLowerCase());
-        if (node?.contentLink) {
-            setAdminMode(false);
-            setSelectedRoute(node.contentLink);
-            setSelectedTitle(node.displayName || 'Campaign Document');
-        } else {
-            // unknown id -> show empty state
-            setSelectedRoute(null);
-            setSelectedTitle('');
+        if (!node) {
+            // Either the content is gone or it sits above this user's access level.
+            navigate('/dashboard', { replace: true, state: { notice: NO_ACCESS_NOTICE } });
+            return;
         }
-    }, [campaignId, params.contentId, indexById]);
+
+        setSelectedRoute(node.contentLink || null);
+        setSelectedTitle(node.displayName || 'Campaign Document');
+        setSelectedId(node.id ?? null);
+        setSelectedEditable(!!node.editable);
+        openBranchTo(node);
+    }, [campaignId, params.contentId, indexById, loading, navCampaignId, navigate, openBranchTo]);
 
     const renderNode = (item, level = 0) => {
         const hasChildren = Array.isArray(item.children) && item.children.length > 0;
         const pad = { paddingLeft: level * 16 };
-        const key = `${item.displayName}_${item.contentLink || 'nolink'}_${level}`;
+        const key = nodeKey(item, level);
+        const isSelected =
+            !!selectedId && String(selectedId).toLowerCase() === String(item.id).toLowerCase();
 
         if (hasChildren) {
             const isOpen = !!expanded[key];
+            // A parent may carry content of its own. When it does, the row opens that
+            // content and the chevron is the only thing that expands/collapses.
+            const opensContent = !!item.contentLink;
             return (
                 <div key={key}>
-                    <ListItem button onClick={() => handleToggle(key)} style={pad}>
+                    <ListItem
+                        button
+                        selected={isSelected}
+                        onClick={() => (opensContent ? handleNavigateNode(item) : handleToggle(key))}
+                        style={pad}
+                        sx={treeItemSx}
+                    >
                         <ListItemText primary={item.displayName} />
-                        {isOpen ? '^' : '>'}
+                        <IconButton
+                            size="small"
+                            aria-label={isOpen ? 'Collapse' : 'Expand'}
+                            aria-expanded={isOpen}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggle(key);
+                            }}
+                            sx={chevronButtonSx(isOpen)}
+                        >
+                            <ChevronRightIcon fontSize="small" />
+                        </IconButton>
                     </ListItem>
                     <Collapse in={isOpen} timeout="auto" unmountOnExit>
                         <List component="div" disablePadding>
@@ -265,8 +375,10 @@ export const CampaignDashboard = (props) => {
                 <ListItem
                     key={key}
                     button
+                    selected={isSelected}
                     onClick={() => handleNavigateNode(item)}
                     style={pad}
+                    sx={treeItemSx}
                 >
                     <ListItemText primary={item.displayName} />
                 </ListItem>
@@ -274,7 +386,7 @@ export const CampaignDashboard = (props) => {
         }
 
         return (
-            <ListItem key={key} style={pad} disabled>
+            <ListItem key={key} style={pad} disabled sx={treeDisabledSx}>
                 <ListItemText primary={item.displayName} />
             </ListItem>
         );
@@ -297,34 +409,17 @@ export const CampaignDashboard = (props) => {
             }}
         >
             {/* Left sidenav */}
-            <List
-                component="nav"
-                sx={{
-                    width: 'fit-content',
-                    minWidth: 240,
-                    maxWidth: 400,
-                    bgcolor: 'transparent',
-                    boxSizing: 'border-box',
-                }}
-            >
+            <List component="nav" sx={sidebarSx}>
                 {/* Admin button (only for hierarchy 1 in this campaign) */}
                 {canAdmin && (
                     <ListItem
                         button
+                        selected={adminMode}
                         onClick={() => {
-                            setAdminMode(true);
                             setSelectedRoute(null);
-                            // stay on /campaigns/:campaignId (campaign root) in URL
-                            if (campaignId) navigate(`/campaigns/${campaignId}`, { replace: false });
+                            if (campaignId) navigate(`/campaigns/${campaignId}/admin`);
                         }}
-                        sx={{
-                            mb: 1,
-                            borderRadius: 1.5,
-                            backgroundColor: 'warning.main',
-                            color: 'black',
-                            fontWeight: 700,
-                            '&:hover': { backgroundColor: 'warning.dark', color: 'white' },
-                        }}
+                        sx={sidebarPrimarySx}
                     >
                         <ListItemText primary="Campaign Administration" />
                     </ListItem>
@@ -334,14 +429,7 @@ export const CampaignDashboard = (props) => {
                 <ListItem
                     button
                     onClick={() => campaignId && navigate(`/campaigns/${campaignId}/bastions`)}
-                    sx={{
-                        mb: 1,
-                        borderRadius: 1.5,
-                        backgroundColor: 'primary.main',
-                        color: 'white',
-                        fontWeight: 700,
-                        '&:hover': { backgroundColor: 'primary.dark' },
-                    }}
+                    sx={sidebarOutlinedSx}
                 >
                     <ListItemText primary="Bastions" />
                 </ListItem>
@@ -350,24 +438,16 @@ export const CampaignDashboard = (props) => {
                 <ListItem
                     button
                     onClick={() => setMyCharsOpen(true)}
-                    sx={{
-                        mb: 1,
-                        borderRadius: 1.5,
-                        border: '1px solid',
-                        borderColor: 'primary.main',
-                        color: 'primary.main',
-                        fontWeight: 700,
-                        '&:hover': { backgroundColor: 'primary.main', color: 'white' },
-                    }}
+                    sx={sidebarMutedSx}
                 >
                     <ListItemText primary="My Characters" />
                 </ListItem>
 
                 {/* Loading → Empty → Tree */}
                 {loading ? (
-                    <PotionLoader label="Brewing your lore…" />
+                    <PotionLoader label="Brewing your lore…" labelColor="#cbb994" labelShadow="none" />
                 ) : navData.length === 0 ? (
-                    <ListItem disabled>
+                    <ListItem disabled sx={treeDisabledSx}>
                         <ListItemText primary="No content available." />
                     </ListItem>
                 ) : (
@@ -380,7 +460,12 @@ export const CampaignDashboard = (props) => {
                 {adminMode ? (
                     <CampaignAdminTabs campaignId={campaignId} user={props.user} />
                 ) : selectedRoute ? (
-                    <ContentViewer url={selectedRoute} title={selectedTitle} topOffset={0} />
+                    <ContentViewer
+                        url={selectedRoute}
+                        title={selectedTitle}
+                        topOffset={0}
+                        editable={selectedEditable}
+                    />
                 ) : loading ? (
                     <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <PotionLoader label="Identifying ancient scripts…" minHeight={240} />

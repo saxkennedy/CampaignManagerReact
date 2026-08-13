@@ -35,6 +35,26 @@ export function getCampaignPermissions(user, campaignId) {
     return set;
 }
 
+// Shown on the dashboard when a link points somewhere the user can't reach.
+export const NO_ACCESS_NOTICE = "You don't have access to that page.";
+
+// Site administrators are treated as members of every campaign.
+export function isSiteAdministrator(user) {
+    return (
+        user?.isAdmin === true ||
+        (user?.SitePersonaName ?? user?.sitePersonaName) === 'Administrator'
+    );
+}
+
+// True when the user holds any persona in the campaign (or is a site administrator).
+// Used to decide whether a shared campaign link is reachable for this user.
+export function isCampaignMember(user, campaignId) {
+    if (!user) return false;
+    if (isSiteAdministrator(user)) return true;
+    if (!campaignId) return true;
+    return personasOf(user).some((cp) => sameCampaign(cp, campaignId));
+}
+
 // Most-privileged hierarchy the user holds in a campaign (lower = more privileged).
 export function getUserHierarchyForCampaign(user, campaignId) {
     const levels = personasOf(user)

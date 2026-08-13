@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import UserService from '../api/UserService';
-import { Container, Typography, TextField, Button, Paper } from '@mui/material';
+import { Box, Typography, TextField, Button } from '@mui/material';
+import {
+    authBgStyle,
+    authCardSx,
+    authTitleSx,
+    authBodySx,
+    authLinkStyle,
+    darkFieldSx,
+    goldButtonSx,
+} from '../theme/soulslike';
 
 export const Register = (props) => {
   const [email, setEmail] = useState('');
@@ -32,21 +41,22 @@ export const Register = (props) => {
   };
 
   return (
-    <Container maxWidth="xs" sx={{ mt: 5 }}>
-      <Typography variant="h4" align="center">Create an account</Typography>
-      <Typography variant="body2" color="textSecondary" align="center" sx={{ mt: 1 }}>
-        Already have an account?{' '}
-        <Link to="/login">Login</Link>
-      </Typography>
+    <div style={authBgStyle}>
+      <Box sx={{ ...authCardSx, width: { xs: '92%', sm: 440 } }}>
+        <Typography variant="h4" gutterBottom sx={authTitleSx}>Create an account</Typography>
+        <Typography variant="body2" sx={authBodySx}>
+          Already have an account?{' '}
+          <Link to="/login" style={authLinkStyle}>Login</Link>
+        </Typography>
 
-      <Paper elevation={3} sx={{ p: 3, mt: 3 }}>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} style={{ width: '100%' }}>
           <TextField
             label="Email"
             placeholder="your@email.com"
             required
             fullWidth
             margin="normal"
+            sx={darkFieldSx}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -57,16 +67,17 @@ export const Register = (props) => {
             required
             fullWidth
             margin="normal"
+            sx={darkFieldSx}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
           {error && <Typography color="error" variant="body2" sx={{ mt: 1 }}>{error}</Typography>}
-          <Button fullWidth variant="contained" color="primary" type="submit" sx={{ mt: 3 }}>
+          <Button fullWidth variant="contained" type="submit" sx={{ ...goldButtonSx, mt: 3, py: 1.5 }}>
             Register
           </Button>
         </form>
-      </Paper>
-    </Container>
+      </Box>
+    </div>
   );
 }
 

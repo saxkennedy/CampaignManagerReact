@@ -20,13 +20,22 @@ import {
     IconButton,
     Tooltip,
     Chip,
+    Checkbox,
+    FormControlLabel,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import CampaignContentService from '../../api/CampaignContentService';
 import CampaignAdminService from '../../api/CampaignAdminService';
+import {
+    goldButtonSx,
+    goldOutlineButtonSx,
+    adminRowSx,
+    adminChevronSx,
+    soulslike,
+} from '../../theme/soulslike';
 
 const DEFAULT_ACCESS_LEVELS = [
     { value: 1, label: 'DM Only' },
@@ -143,13 +152,7 @@ const ContentTree = ({
                             direction="row"
                             alignItems="center"
                             justifyContent="space-between"
-                            sx={{
-                                border: '1px solid',
-                                borderColor: 'divider',
-                                borderRadius: 1,
-                                p: 1,
-                                backgroundColor: level === 0 ? 'transparent' : 'action.hover',
-                            }}
+                            sx={adminRowSx(level > 0)}
                         >
                             <Stack direction="row" spacing={2} alignItems="center" sx={{ minWidth: 0 }}>
                                 {/* Expand / collapse control (only when has children) */}
@@ -158,8 +161,10 @@ const ContentTree = ({
                                         size="small"
                                         onClick={() => toggleExpanded(id)}
                                         aria-label={isExpanded ? 'Collapse' : 'Expand'}
+                                        aria-expanded={isExpanded}
+                                        sx={adminChevronSx(isExpanded)}
                                     >
-                                        {isExpanded ? <ExpandMoreIcon /> : <ChevronRightIcon />}
+                                        <ChevronRightIcon fontSize="small" />
                                     </IconButton>
                                 ) : (
                                     // spacer to align text with siblings that have a chevron
@@ -169,8 +174,21 @@ const ContentTree = ({
                                 <Typography sx={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                     {name}
                                 </Typography>
-                                <Chip size="small" label={`Level ${lvl ?? '—'}`} />
-                                <Chip size="small" variant="outlined" label={ctName} />
+                                <Chip
+                                    size="small"
+                                    label={`Level ${lvl ?? '—'}`}
+                                    sx={{
+                                        backgroundColor: 'rgba(138,106,34,0.16)',
+                                        color: soulslike.goldInk,
+                                        fontWeight: 600,
+                                    }}
+                                />
+                                <Chip
+                                    size="small"
+                                    variant="outlined"
+                                    label={ctName}
+                                    sx={{ borderColor: soulslike.edgeInk, color: soulslike.goldInk }}
+                                />
                             </Stack>
                             <Stack direction="row" spacing={1}>
                                 <Tooltip title="Edit">
@@ -248,6 +266,7 @@ const CampaignAdmin = ({ campaignId }) => {
     const [iconLink, setIconLink] = useState('');
     const [simpleContent, setSimpleContent] = useState('');
     const [contentTypeId, setContentTypeId] = useState(''); // value is the ContentTypes.Id
+    const [editable, setEditable] = useState(false);
 
     // Build content type lookup (Id -> Type)
     const contentTypeNameById = useMemo(() => {
@@ -260,7 +279,8 @@ const CampaignAdmin = ({ campaignId }) => {
         return map;
     }, [data.contentTypes]);
 
-    // Parent dropdown
+    // Parent dropdown. While editing, the item itself and everything beneath it are
+    // excluded — moving a node under its own child would strand that subtree.
     const parentOptions = useMemo(() => {
         const items = data?.contents || [];
         const byParent = new Map();
@@ -281,6 +301,7 @@ const CampaignAdmin = ({ campaignId }) => {
             const kids = byParent.get(parentKey) || [];
             for (const k of kids) {
                 const id = pick(k, 'Id', 'id');
+                if (editingId && id === editingId) continue; // skips its subtree too
                 const labelText = pick(k, 'DisplayName', 'displayName');
                 out.push({ value: id, label: `${'— '.repeat(depth)}${labelText}` });
                 dfs(id, depth + 1);
@@ -288,7 +309,7 @@ const CampaignAdmin = ({ campaignId }) => {
         };
         dfs('root', 1);
         return out;
-    }, [data]);
+    }, [data, editingId]);
 
     const resetForm = useCallback(() => {
         setEditingId(null);
@@ -300,6 +321,7 @@ const CampaignAdmin = ({ campaignId }) => {
         setIconLink('');
         setSimpleContent('');
         setContentTypeId('');
+        setEditable(false);
         setSaveError('');
         setSaveOk('');
     }, [data]);
@@ -356,6 +378,7 @@ const CampaignAdmin = ({ campaignId }) => {
         setContentLink(pick(item, 'ContentLink', 'contentLink') || '');
         setIconLink(pick(item, 'IconLink', 'iconLink') || '');
         setSimpleContent(pick(item, 'SimpleContent', 'simpleContent') || '');
+        setEditable(Boolean(pick(item, 'Editable', 'editable')));
         const ctId = pick(item.ContentType, 'Id', 'id')
         setContentTypeId(ctId ?? '');
         setShowForm(true);
@@ -420,6 +443,7 @@ const CampaignAdmin = ({ campaignId }) => {
             IconLink: iconLink.trim() || null,
             SimpleContent: simpleContent.trim() || null,
             ContentTypeId: contentTypeId === '' ? null : contentTypeId,
+            Editable: editable,
         };
 
         const payload = isEdit ? { ...base, Id: editingId } : base;
@@ -450,6 +474,7 @@ const CampaignAdmin = ({ campaignId }) => {
                 setSimpleContent('');
                 setParentId('root');
                 setContentTypeId('');
+                setEditable(false);
             }
         } catch (err) {
             setSaveError(err?.message || 'Save failed.');
@@ -467,11 +492,9 @@ const CampaignAdmin = ({ campaignId }) => {
     // Collapse/expand state
     const [expandedIds, setExpandedIds] = useState(new Set());
 
-    // When content changes, expand all nodes that have children by default.
+    // Start fully collapsed; the user can open branches or use "Expand all".
     useEffect(() => {
-        const all = collectBranchIds(contentTree);
-        setExpandedIds(new Set(contentTree.map(n => n.id)));
- // If you prefer only roots expanded: setExpandedIds(new Set(contentTree.map(n => n.id)));
+        setExpandedIds(new Set());
     }, [contentTree]);
 
     const toggleExpanded = useCallback((id) => {
@@ -510,7 +533,7 @@ const CampaignAdmin = ({ campaignId }) => {
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                             {/* Actions */}
                             <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
-                                <Button variant="contained" color="warning" onClick={onAddClick}>
+                                <Button variant="contained" onClick={onAddClick} sx={goldButtonSx}>
                                     Add Content
                                 </Button>
                                 <Typography variant="body2" color="text.secondary">
@@ -521,10 +544,10 @@ const CampaignAdmin = ({ campaignId }) => {
 
                                 {/* Expand/Collapse controls */}
                                 <Stack direction="row" spacing={1}>
-                                    <Button size="small" variant="outlined" onClick={expandAll}>
+                                    <Button size="small" variant="outlined" onClick={expandAll} sx={goldOutlineButtonSx}>
                                         Expand all
                                     </Button>
-                                    <Button size="small" variant="outlined" onClick={collapseAll}>
+                                    <Button size="small" variant="outlined" onClick={collapseAll} sx={goldOutlineButtonSx}>
                                         Collapse all
                                     </Button>
                                 </Stack>
@@ -672,6 +695,29 @@ const CampaignAdmin = ({ campaignId }) => {
                                             />
                                         </Grid>
 
+                                        <Grid item xs={12}>
+                                            <Stack direction="row" spacing={0.5} alignItems="center">
+                                                <FormControlLabel
+                                                    control={
+                                                        <Checkbox
+                                                            checked={editable}
+                                                            onChange={(e) => setEditable(e.target.checked)}
+                                                        />
+                                                    }
+                                                    label="Editable"
+                                                    sx={{ mr: 0 }}
+                                                />
+                                                <Tooltip title="Be sure to make sure your content link is editable in your drive service as well if you turn this on.">
+                                                    <InfoOutlinedIcon
+                                                        fontSize="small"
+                                                        color="action"
+                                                        aria-label="Editable content help"
+                                                        tabIndex={0}
+                                                    />
+                                                </Tooltip>
+                                            </Stack>
+                                        </Grid>
+
                                         <Grid item xs={12} md={6}>
                                             <TextField
                                                 label="Simple Content (optional)"
@@ -686,12 +732,13 @@ const CampaignAdmin = ({ campaignId }) => {
 
                                         <Grid item xs={12}>
                                             <Stack direction="row" spacing={2} alignItems="center">
-                                                <Button type="submit" variant="contained" disabled={saving}>
+                                                <Button type="submit" variant="contained" disabled={saving} sx={goldButtonSx}>
                                                     {saving ? 'Saving…' : isEdit ? 'Update' : 'Save'}
                                                 </Button>
                                                 <Button
                                                     type="button"
                                                     variant="outlined"
+                                                    sx={goldOutlineButtonSx}
                                                     onClick={() => {
                                                         setShowForm(false);
                                                         resetForm();

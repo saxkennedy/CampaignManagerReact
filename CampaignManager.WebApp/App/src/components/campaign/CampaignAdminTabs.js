@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { Box, Card, CardHeader, Divider, Tabs, Tab, Typography } from '@mui/material';
+import { Box, Card, CardHeader, Tabs, Tab, Typography } from '@mui/material';
 import CampaignAdmin from './CampaignAdmin';
 import PersonaManagement from './PersonaManagement';
 import ReassignUsers from './ReassignUsers';
 import { getAdminCapabilities } from './campaignPermissions';
+import { adminCardSx, adminHeaderSx, adminTabsSx, adminBodySx } from '../../theme/soulslike';
 
 // Tabbed shell for Campaign Administration. Each tab is shown only if the user
 // holds the relevant permission in this campaign.
@@ -24,22 +25,24 @@ const CampaignAdminTabs = ({ campaignId, user }) => {
 
     return (
         <Box sx={{ width: '100%' }}>
-            <Card>
-                <CardHeader title="Campaign Administration" subheader={`Campaign ID: ${campaignId}`} />
-                <Divider />
+            <Card sx={adminCardSx}>
+                <CardHeader
+                    title="Campaign Administration"
+                    subheader={`Campaign ID: ${campaignId}`}
+                    sx={adminHeaderSx}
+                />
                 {tabs.length === 0 ? (
-                    <Box sx={{ p: 3 }}>
+                    <Box sx={{ ...adminBodySx, p: 3 }}>
                         <Typography color="text.secondary">
                             You don't have administrative permissions for this campaign.
                         </Typography>
                     </Box>
                 ) : (
                     <>
-                        <Tabs value={idx} onChange={(e, v) => setActive(v)} sx={{ px: 2 }}>
+                        <Tabs value={idx} onChange={(e, v) => setActive(v)} sx={adminTabsSx}>
                             {tabs.map((t) => <Tab key={t.key} label={t.label} />)}
                         </Tabs>
-                        <Divider />
-                        <Box sx={{ p: 2 }}>
+                        <Box sx={adminBodySx}>
                             {current === 'content' && <CampaignAdmin campaignId={campaignId} />}
                             {current === 'personas' && <PersonaManagement campaignId={campaignId} />}
                             {current === 'reassign' && <ReassignUsers campaignId={campaignId} canManageCharacters={caps.canManagePersonas} />}

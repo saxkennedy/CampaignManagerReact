@@ -2,6 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import UserService from '../api/UserService';
 import { Box, TextField, Button, Typography, Alert } from '@mui/material';
+import {
+    authCardSx,
+    authTitleSx,
+    authBodySx,
+    authLinkStyle,
+    darkFieldSx,
+    goldButtonSx,
+} from '../theme/soulslike';
 
 const bgStyle = {
     backgroundImage: 'url("/img/LoginBackground.jpg")',
@@ -14,16 +22,7 @@ const bgStyle = {
     justifyContent: 'center',
 };
 
-const cardSx = {
-    background: '#FCF5E5',
-    borderRadius: 4,
-    boxShadow: 3,
-    p: { xs: 3, sm: 6 },
-    width: { xs: '92%', sm: 420 },
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-};
+const cardSx = { ...authCardSx, width: { xs: '92%', sm: 440 } };
 
 export const ResetPassword = () => {
     const [newPassword, setNewPassword] = useState('');
@@ -55,10 +54,10 @@ export const ResetPassword = () => {
     return (
         <div style={bgStyle}>
             <Box sx={cardSx}>
-                <Typography variant="h4" fontWeight={700} color="#1976d2" gutterBottom align="center">
+                <Typography variant="h4" gutterBottom sx={authTitleSx}>
                     Reset your password
                 </Typography>
-                <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
+                <Typography variant="body2" sx={authBodySx}>
                     Choose a new password for <strong>{email}</strong>
                 </Typography>
 
@@ -69,6 +68,7 @@ export const ResetPassword = () => {
                         required
                         fullWidth
                         margin="normal"
+                        sx={darkFieldSx}
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         autoFocus
@@ -79,6 +79,7 @@ export const ResetPassword = () => {
                         required
                         fullWidth
                         margin="normal"
+                        sx={darkFieldSx}
                         value={confirm}
                         onChange={(e) => setConfirm(e.target.value)}
                     />
@@ -89,14 +90,14 @@ export const ResetPassword = () => {
                         type="submit"
                         disabled={submitting}
                         size="large"
-                        sx={{ mt: 3, py: 1.5, fontWeight: 600 }}
+                        sx={{ ...goldButtonSx, mt: 3, py: 1.5 }}
                     >
                         Reset Password
                     </Button>
                 </form>
 
                 <Typography variant="body2" align="center" sx={{ mt: 2 }}>
-                    <Link to="/login">Back to login</Link>
+                    <Link to="/login" style={authLinkStyle}>Back to login</Link>
                 </Typography>
             </Box>
         </div>

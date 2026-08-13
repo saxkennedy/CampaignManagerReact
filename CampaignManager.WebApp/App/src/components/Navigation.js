@@ -11,6 +11,13 @@ import {
     MenuItem,
 } from '@mui/material';
 import UserService from '../api/UserService';
+import {
+    appBarSx,
+    topNavButtonSx,
+    drawerPanelSx,
+    drawerOptionSx,
+    menuPaperSx,
+} from '../theme/soulslike';
 
 export const Navigation = (props) => {
     const navigate = useNavigate();
@@ -97,44 +104,37 @@ export const Navigation = (props) => {
 
     return (
         <ClickAwayListener onClickAway={onClickAway}>
-            <AppBar position="fixed" ref={appBarRef} sx={{ background: '#1976d2' }}>
+            <AppBar position="fixed" ref={appBarRef} sx={appBarSx}>
                 <Toolbar sx={{ gap: 1 }}>
-                    <Button onClick={() => handleTopNavClick('dashboard')}
-                        sx={{ flexGrow: 1, color: 'white', fontWeight: 600, textTransform: 'none' }}>
+                    <Button onClick={() => handleTopNavClick('dashboard')} sx={topNavButtonSx}>
                         Home
                     </Button>
 
-                    <Button onClick={() => handleTopNavClick('campaignMaterials')}
-                        sx={{ flexGrow: 1, color: 'white', fontWeight: 600, textTransform: 'none' }}>
+                    <Button onClick={() => handleTopNavClick('campaignMaterials')} sx={topNavButtonSx}>
                         Campaign Material
                     </Button>
 
-                    <Button onClick={() => handleTopNavClick('join')}
-                        sx={{ flexGrow: 1, color: 'white', fontWeight: 600, textTransform: 'none' }}>
+                    <Button onClick={() => handleTopNavClick('join')} sx={topNavButtonSx}>
                         Join
                     </Button>
 
-                    {/* ✅ FIXED */}
-                    <Button onClick={() => handleTopNavClick('create')}
-                        sx={{ flexGrow: 1, color: 'white', fontWeight: 600, textTransform: 'none' }}>
+                    <Button onClick={() => handleTopNavClick('create')} sx={topNavButtonSx}>
                         Create
                     </Button>
 
-                    <Button onClick={() => handleTopNavClick('playerTools')}
-                        sx={{ flexGrow: 1, color: 'white', fontWeight: 600, textTransform: 'none' }}>
+                    <Button onClick={() => handleTopNavClick('playerTools')} sx={topNavButtonSx}>
                         Player Tools
                     </Button>
 
                     {props.user?.SitePersonaName === 'Administrator' && (
-                        <Button onClick={() => handleTopNavClick('admin')}
-                            sx={{ flexGrow: 1, color: 'white', fontWeight: 600, textTransform: 'none' }}>
+                        <Button onClick={() => handleTopNavClick('admin')} sx={topNavButtonSx}>
                             Admin
                         </Button>
                     )}
 
                     <Button
                         onClick={(e) => setAccountAnchor(e.currentTarget)}
-                        sx={{ flexGrow: 1, color: 'white', fontWeight: 600, textTransform: 'none' }}
+                        sx={topNavButtonSx}
                     >
                         Account
                     </Button>
@@ -142,6 +142,7 @@ export const Navigation = (props) => {
                         anchorEl={accountAnchor}
                         open={Boolean(accountAnchor)}
                         onClose={() => setAccountAnchor(null)}
+                        slotProps={{ paper: { sx: menuPaperSx } }}
                     >
                         <MenuItem onClick={() => { setAccountAnchor(null); navigate('/change-password'); }}>
                             Change Password
@@ -160,14 +161,7 @@ export const Navigation = (props) => {
                 </Toolbar>
 
                 <Collapse in={drawerOpen} unmountOnExit>
-                    <Box sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        flexWrap: 'wrap',
-                        p: 2,
-                        backgroundColor: '#1565c0',
-                        borderTop: '1px solid rgba(255,255,255,0.2)'
-                    }}>
+                    <Box sx={drawerPanelSx}>
                         {drawerContent.map((option, index) => {
                             const label = typeof option === 'string' ? option : option.label;
                             const key = typeof option === 'string' ? index : option.id;
@@ -176,16 +170,7 @@ export const Navigation = (props) => {
                                     key={key}
                                     variant="outlined"
                                     onClick={() => handleDrawerOptionClick(option)}
-                                    sx={{
-                                        m: 1,
-                                        color: 'white',
-                                        borderColor: 'white',
-                                        fontWeight: 600,
-                                        textTransform: 'none',
-                                        borderRadius: 2,
-                                        px: 2.5,
-                                        '&:hover': { backgroundColor: 'rgba(255,255,255,0.15)', borderColor: 'white' },
-                                    }}
+                                    sx={drawerOptionSx}
                                 >
                                     {label}
                                 </Button>

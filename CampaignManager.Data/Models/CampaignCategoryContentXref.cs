@@ -29,6 +29,12 @@ public partial class CampaignCategoryContentXref
 
     public Guid? ContentTypeId { get; set; }
 
+    /// <summary>
+    /// When true the linked Google Doc/Sheet is embedded in edit mode rather than
+    /// read-only. Requires the file itself to be editable by link in Drive.
+    /// </summary>
+    public bool Editable { get; set; }
+
     public virtual Campaign Campaign { get; set; }
 
     public virtual ContentType ContentType { get; set; }

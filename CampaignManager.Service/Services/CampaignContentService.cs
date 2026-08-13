@@ -34,6 +34,7 @@ namespace CampaignManager.Services.Services
                     ContentLink = c.ContentLink,
                     IconLink = c.IconLink,
                     SimpleContent = c.SimpleContent,
+                    Editable = c.Editable,
                     ContentType = c.ContentType
                 })
                 .ToListAsync();

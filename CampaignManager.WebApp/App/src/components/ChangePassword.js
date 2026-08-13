@@ -2,6 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UserService from '../api/UserService';
 import { Box, TextField, Button, Typography, Alert } from '@mui/material';
+import {
+    authCardSx,
+    authTitleSx,
+    authBodySx,
+    darkFieldSx,
+    goldButtonSx,
+    soulslike,
+} from '../theme/soulslike';
 
 export const ChangePassword = () => {
     const [currentPassword, setCurrentPassword] = useState('');
@@ -31,27 +39,18 @@ export const ChangePassword = () => {
 
     return (
         <Box sx={{
-            backgroundColor: '#FCF5E5',
+            backgroundColor: soulslike.void,
             minHeight: '100vh',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             pt: '4vh', // offset for fixed navbar
         }}>
-            <Box sx={{
-                background: '#FCF5E5',
-                borderRadius: 4,
-                boxShadow: 3,
-                p: { xs: 3, sm: 6 },
-                width: { xs: '92%', sm: 420 },
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-            }}>
-                <Typography variant="h4" fontWeight={700} color="#1976d2" gutterBottom align="center">
+            <Box sx={{ ...authCardSx, width: { xs: '92%', sm: 440 } }}>
+                <Typography variant="h4" gutterBottom sx={authTitleSx}>
                     Change Password
                 </Typography>
-                <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
+                <Typography variant="body2" sx={authBodySx}>
                     Enter your current password, then choose a new one.
                 </Typography>
 
@@ -62,6 +61,7 @@ export const ChangePassword = () => {
                         required
                         fullWidth
                         margin="normal"
+                        sx={darkFieldSx}
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
                         autoFocus
@@ -72,6 +72,7 @@ export const ChangePassword = () => {
                         required
                         fullWidth
                         margin="normal"
+                        sx={darkFieldSx}
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                     />
@@ -81,6 +82,7 @@ export const ChangePassword = () => {
                         required
                         fullWidth
                         margin="normal"
+                        sx={darkFieldSx}
                         value={confirm}
                         onChange={(e) => setConfirm(e.target.value)}
                     />
@@ -91,7 +93,7 @@ export const ChangePassword = () => {
                         type="submit"
                         disabled={submitting}
                         size="large"
-                        sx={{ mt: 3, py: 1.5, fontWeight: 600 }}
+                        sx={{ ...goldButtonSx, mt: 3, py: 1.5 }}
                     >
                         Update Password
                     </Button>

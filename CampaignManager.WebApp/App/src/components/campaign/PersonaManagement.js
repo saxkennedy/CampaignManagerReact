@@ -10,6 +10,7 @@ import AddIcon from '@mui/icons-material/Add';
 import CampaignAdminService from '../../api/CampaignAdminService';
 import PotionLoader from '../utilities/PotionLoader';
 import { CREATOR_HIERARCHY, MAX_RANK } from './campaignPermissions';
+import { goldButtonSx } from '../../theme/soulslike';
 
 const pick = (o, P, c) => o?.[P] ?? o?.[c];
 const MAX_PERSONAS = MAX_RANK + 1; // creator (0) + ranks 1..MAX_RANK
@@ -370,7 +371,7 @@ const PersonaManagement = ({ campaignId }) => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setImpact(null)}>Cancel</Button>
-                    <Button variant="contained" color="warning" onClick={() => doSave(impact.payload)} disabled={saving}>
+                    <Button variant="contained" sx={goldButtonSx} onClick={() => doSave(impact.payload)} disabled={saving}>
                         Yes, apply
                     </Button>
                 </DialogActions>

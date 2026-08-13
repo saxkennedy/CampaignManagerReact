@@ -237,6 +237,19 @@ export class App extends Component {
                             }
                         />
 
+                        {/* Admin is its own path so it survives a refresh and can't be
+                            clobbered by the content-selection effect. */}
+                        <Route
+                            path="/campaigns/:campaignId/admin"
+                            element={
+                                <ProtectedRoute user={this.state.user} isLoading={this.state.fetching}>
+                                    <div style={{ height: "96vh", width: "100vw", position: "relative", top: "4vh" }}>
+                                        <CampaignDashboard user={this.state.user} activeCampaignId={this.state.activeCampaignId} />
+                                    </div>
+                                </ProtectedRoute>
+                            }
+                        />
+
                         <Route
                             path="/campaigns/:campaignId"
                             element={

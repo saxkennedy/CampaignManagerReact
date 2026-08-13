@@ -8,7 +8,7 @@ export default function ProtectedRoute({ user, isLoading, children }) {
     if (isLoading) return null; // or return a spinner
 
     if (!user) {
-        const returnTo = location.pathname + location.search;
+        const returnTo = location.pathname + location.search + location.hash;
         return <Navigate to="/login" replace state={{ returnTo }} />;
     }
 

@@ -182,6 +182,20 @@ namespace CampaignManager.Services.Services
                 {
                     return "Failed.  Item not found.";
                 }
+                // Moving an item beneath itself or one of its own descendants would
+                // detach that whole subtree from the campaign root.
+                if (request.ParentContentId == entry.Id)
+                {
+                    return "Failed.  An item cannot be its own parent.";
+                }
+                if (request.ParentContentId.HasValue &&
+                    request.ParentContentId != entry.ParentContentId &&
+                    await WouldCreateCycle(entry.CampaignId, entry.Id, request.ParentContentId.Value))
+                {
+                    return "Failed.  Cannot move an item beneath one of its own children.";
+                }
+
+                entry.ParentContentId = request.ParentContentId;
                 entry.DisplayName = request.DisplayName;
                 entry.Description = request.Description ?? null;
                 entry.AccessHierarchyLevel = request.AccessHierarchyLevel;
@@ -189,6 +203,7 @@ namespace CampaignManager.Services.Services
                 entry.IconLink = request.IconLink ?? null;
                 entry.SimpleContent = request.SimpleContent ?? null;
                 entry.ContentTypeId = request.ContentTypeId;
+                entry.Editable = request.Editable;
                 CampaignManagerContext.CampaignCategoryContentXrefs.Update(entry);
                 await CampaignManagerContext.SaveChangesAsync();
                 return "Successfully Updated Item";
@@ -209,7 +224,8 @@ namespace CampaignManager.Services.Services
                         ContentLink = request.ContentLink ?? null,
                         IconLink = request.IconLink ?? null,
                         SimpleContent = request.SimpleContent ?? null,
-                        ContentTypeId = request.ContentTypeId
+                        ContentTypeId = request.ContentTypeId,
+                        Editable = request.Editable
                     };
                     CampaignManagerContext.CampaignCategoryContentXrefs.Add(entry);
                     CampaignManagerContext.SaveChanges();
@@ -221,6 +237,32 @@ namespace CampaignManager.Services.Services
                     return "Failed.  " + ex.Message;
                 }
             }
+        }
+
+        /// <summary>
+        /// True when re-parenting <paramref name="itemId"/> under
+        /// <paramref name="newParentId"/> would form a loop — i.e. the proposed parent
+        /// is the item itself or sits somewhere below it.
+        /// </summary>
+        private async Task<bool> WouldCreateCycle(Guid campaignId, Guid itemId, Guid newParentId)
+        {
+            var links = await CampaignManagerContext.CampaignCategoryContentXrefs
+                .AsNoTracking()
+                .Where(c => c.CampaignId == campaignId)
+                .Select(c => new { c.Id, c.ParentContentId })
+                .ToListAsync();
+
+            var parentOf = links.ToDictionary(x => x.Id, x => x.ParentContentId);
+
+            // Walk up from the proposed parent; meeting the item means it's below us.
+            Guid? cursor = newParentId;
+            for (var hops = 0; cursor.HasValue && hops <= links.Count; hops++)
+            {
+                if (cursor.Value == itemId) return true;
+                cursor = parentOf.TryGetValue(cursor.Value, out var next) ? next : null;
+            }
+
+            return false;
         }
 
         // ---------------------------------------------------------------------

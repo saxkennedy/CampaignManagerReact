@@ -1,14 +1,27 @@
 import { useState, useEffect } from 'react';
-import { Box, Typography } from '@mui/material';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Box, Typography, Snackbar, Alert } from '@mui/material';
 
 export const Dashboard = (props) => {
     const [content, setContent] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    // Routes that bounce a user here (no access, dead link) pass a message in state.
+    const [notice, setNotice] = useState(location.state?.notice || '');
+
+    useEffect(() => {
+        if (!location.state?.notice) return;
+        setNotice(location.state.notice);
+        // Clear it so a refresh or back-navigation doesn't replay the toast.
+        navigate(location.pathname, { replace: true, state: null });
+    }, [location.state, location.pathname, navigate]);
+
     const backgroundUrl = `url("/img/DashboardBackground.jpg")`;
 
-    
+
     if (props.fetching) return <div>Loading...</div>;
     if (error) return <div>{error}</div>;
 
@@ -67,6 +80,17 @@ export const Dashboard = (props) => {
                     </Typography>
                 </div>
             </div>
+
+            <Snackbar
+                open={!!notice}
+                autoHideDuration={6000}
+                onClose={() => setNotice('')}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert severity="warning" variant="filled" onClose={() => setNotice('')}>
+                    {notice}
+                </Alert>
+            </Snackbar>
         </>
     );
 }
