@@ -8,7 +8,8 @@ import CampaignAdminTabs from './CampaignAdminTabs';
 import CampaignContentService from '../../api/CampaignContentService';
 import PotionLoader from '../utilities/PotionLoader';
 import MyCharacters from './MyCharacters';
-import { getAdminCapabilities, isCampaignMember, NO_ACCESS_NOTICE } from './campaignPermissions';
+import { getAdminCapabilities, getCampaignName, isCampaignMember, NO_ACCESS_NOTICE } from './campaignPermissions';
+import useDocumentTitle, { SITE_TITLE, titleFrom } from '../utilities/useDocumentTitle';
 import {
     sidebarSx,
     sidebarPrimarySx,
@@ -195,6 +196,17 @@ export const CampaignDashboard = (props) => {
     const userHierarchy = React.useMemo(
         () => getUserHierarchyForCampaign(user, campaignId),
         [user, campaignId]
+    );
+
+    // Tab title: whatever is on screen, then the campaign it belongs to. With
+    // several documents from one campaign open at once, the document name is
+    // the only thing that tells the tabs apart, so it leads.
+    const campaignName = React.useMemo(
+        () => getCampaignName(user, campaignId),
+        [user, campaignId]
+    );
+    useDocumentTitle(
+        titleFrom(adminMode ? 'Administration' : selectedTitle, campaignName || SITE_TITLE)
     );
 
     // A shared link may point at a campaign the viewer isn't part of: send them

@@ -15,6 +15,7 @@ import AdminTools from './components/admin/AdminTools';
 import BastionsPage from './components/bastion/BastionsPage';
 import BastionBuilder from './components/bastion/BastionBuilder';
 import ProtectedRoute from './components/utilities/ProtectedRoute';
+import RouteTitle from './components/utilities/RouteTitle';
 import UserService from './api/UserService';
 import JoinCampaign from './components/campaign/JoinCampaign';
 import CreateCampaign from './components/campaign/CreateCampaign';
@@ -115,6 +116,10 @@ export class App extends Component {
         return (
             <div style={{ backgroundColor: "#FCF5E5" }}>
                 <Router>
+                    {/* Tab title for the fixed routes. Rendered ahead of the
+                        routes so a page that names itself wins the title. */}
+                    <RouteTitle />
+
                     <div>
                         {this.state.user && (
                             <Navigation

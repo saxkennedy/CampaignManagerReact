@@ -9,10 +9,14 @@ import BastionTurns from './BastionTurns';
 import BastionBankPanel from './BastionBankPanel';
 import BastionMembers from './BastionMembers';
 import ConfirmDialog from '../utilities/ConfirmDialog';
+import useDocumentTitle, { SITE_TITLE, titleFrom } from '../utilities/useDocumentTitle';
+import { getCampaignName } from '../campaign/campaignPermissions';
 
-export default function BastionsPage() {
+export default function BastionsPage({ user }) {
     const { campaignId } = useParams();
     const navigate = useNavigate();
+
+    useDocumentTitle(titleFrom('Bastions', getCampaignName(user, campaignId) || SITE_TITLE));
 
     const [bastions, setBastions] = useState([]);
     const [canCreate, setCanCreate] = useState(false);

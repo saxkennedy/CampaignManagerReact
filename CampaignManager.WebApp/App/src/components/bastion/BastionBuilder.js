@@ -22,7 +22,8 @@ import RoomHirelings from './RoomHirelings';
 import CampaignHirelings from './CampaignHirelings';
 import HirelingService from '../../api/HirelingService';
 import ConfirmDialog from '../utilities/ConfirmDialog';
-import { getAdminCapabilities } from '../campaign/campaignPermissions';
+import { getAdminCapabilities, getCampaignName } from '../campaign/campaignPermissions';
+import useDocumentTitle, { SITE_TITLE, titleFrom } from '../utilities/useDocumentTitle';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 
@@ -102,6 +103,10 @@ export default function BastionBuilder({ user }) {
     const [error, setError] = useState('');
     const [meta, setMeta] = useState(null);
     const [facilities, setFacilities] = useState([]);
+
+    // Named once the bastion loads; until then the tab keeps the site title
+    // rather than flashing a placeholder.
+    useDocumentTitle(meta?.name ? titleFrom(meta.name, getCampaignName(user, meta.campaignId) || SITE_TITLE) : null);
 
     const [doc, setDoc] = useState({ rooms: [], floors: [{ level: 0, name: 'Ground Floor' }] });
     const docRef = useRef(doc);

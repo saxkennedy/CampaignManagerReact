@@ -55,6 +55,19 @@ export function isCampaignMember(user, campaignId) {
     return personasOf(user).some((cp) => sameCampaign(cp, campaignId));
 }
 
+// Display name of a campaign, read off whichever persona the user holds in it.
+// Empty when the user has no persona there — site administrators reach
+// campaigns they were never given one for.
+export function getCampaignName(user, campaignId) {
+    if (!campaignId) return '';
+    for (const cp of personasOf(user)) {
+        if (!sameCampaign(cp, campaignId)) continue;
+        const name = pf(cp, 'CampaignName', 'campaignName');
+        if (name) return name;
+    }
+    return '';
+}
+
 // Most-privileged hierarchy the user holds in a campaign (lower = more privileged).
 export function getUserHierarchyForCampaign(user, campaignId) {
     const levels = personasOf(user)

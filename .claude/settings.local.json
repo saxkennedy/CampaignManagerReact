@@ -65,7 +65,8 @@
       "Bash(git add *)",
       "Bash(node -e \"console.log\\(require\\('./node_modules/@mui/material/package.json'\\).version\\)\")",
       "Bash(npx --no-install babel --presets @babel/preset-react,@babel/preset-env src/components/campaign/CampaignDashboard.js -o /dev/null)",
-      "Bash(BABEL_ENV=development NODE_ENV=development node -e ' *)"
+      "Bash(BABEL_ENV=development NODE_ENV=development node -e ' *)",
+      "Bash(BUILD_PATH=\"C:/Users/Ender/AppData/Local/Temp/claude/C--Users-Ender-source-repos-saxkennedy-CampaignManagerReact/d31f1eeb-4e13-4cd4-b685-62aa139b7e09/scratchpad/build-check\" CI=false npm run build)"
     ]
   }
 }
