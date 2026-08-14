@@ -1,6 +1,6 @@
 ﻿// components/campaign/CampaignDashboard.js
 import React from 'react';
-import { List, ListItem, ListItemText, Collapse, Box, IconButton } from '@mui/material';
+import { List, ListItem, ListItemText, Collapse, Box, IconButton, Menu, MenuItem } from '@mui/material';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useParams, useLocation, useNavigate, useMatch } from 'react-router-dom';
 import ContentViewer from '../utilities/ContentViewer';
@@ -17,6 +17,7 @@ import {
     treeItemSx,
     treeDisabledSx,
     chevronButtonSx,
+    menuPaperSx,
 } from '../../theme/soulslike';
 
 // ---------- helpers ----------
@@ -181,6 +182,8 @@ export const CampaignDashboard = (props) => {
     const [expanded, setExpanded] = React.useState({});
     const [loading, setLoading] = React.useState(true);
     const [myCharsOpen, setMyCharsOpen] = React.useState(false);
+    // Right-click target in the tree: { x, y, node }, or null when closed.
+    const [navMenu, setNavMenu] = React.useState(null);
 
     // Permissions:
     // Campaign Administration shows for anyone holding an admin permission in this campaign.
@@ -292,6 +295,31 @@ export const CampaignDashboard = (props) => {
         }
     };
 
+    // Right-click a row that carries content to open it elsewhere. Rows without
+    // content — folders, and nodes filtered down to folders by access level —
+    // fall through to the browser's own menu, since there is nothing to open.
+    const handleNodeContextMenu = (e, node) => {
+        if (!node?.contentLink || !campaignId) return;
+        e.preventDefault();
+        e.stopPropagation();
+        setNavMenu({ x: e.clientX, y: e.clientY, node });
+    };
+
+    const openNavMenuTarget = (mode) => {
+        const node = navMenu?.node;
+        setNavMenu(null);
+        if (!node) return;
+
+        const url = `${window.location.origin}${routeForNode(campaignId, node)}`;
+        // Chrome only detaches a real window when the feature string asks for
+        // one; with nothing but noopener it reuses a tab.
+        const features =
+            mode === 'window'
+                ? 'noopener,noreferrer,popup=yes,width=1100,height=900'
+                : 'noopener,noreferrer';
+        window.open(url, '_blank', features);
+    };
+
     // Open content from URL on load or when params change
     React.useEffect(() => {
         if (!campaignId) return;
@@ -344,6 +372,7 @@ export const CampaignDashboard = (props) => {
                         button
                         selected={isSelected}
                         onClick={() => (opensContent ? handleNavigateNode(item) : handleToggle(key))}
+                        onContextMenu={(e) => handleNodeContextMenu(e, item)}
                         style={pad}
                         sx={treeItemSx}
                     >
@@ -377,6 +406,7 @@ export const CampaignDashboard = (props) => {
                     button
                     selected={isSelected}
                     onClick={() => handleNavigateNode(item)}
+                    onContextMenu={(e) => handleNodeContextMenu(e, item)}
                     style={pad}
                     sx={treeItemSx}
                 >
@@ -476,6 +506,20 @@ export const CampaignDashboard = (props) => {
                     </Box>
                 )}
             </Box>
+
+            <Menu
+                open={!!navMenu}
+                onClose={() => setNavMenu(null)}
+                anchorReference="anchorPosition"
+                anchorPosition={navMenu ? { top: navMenu.y, left: navMenu.x } : undefined}
+                // Without this the modal's scroll lock nudges the whole page
+                // sideways by a scrollbar width every time the menu opens.
+                disableScrollLock
+                slotProps={{ paper: { sx: menuPaperSx } }}
+            >
+                <MenuItem onClick={() => openNavMenuTarget('tab')}>Open in New Tab</MenuItem>
+                <MenuItem onClick={() => openNavMenuTarget('window')}>Open in New Window</MenuItem>
+            </Menu>
 
             {campaignId && (
                 <MyCharacters campaignId={campaignId} open={myCharsOpen} onClose={() => setMyCharsOpen(false)} />

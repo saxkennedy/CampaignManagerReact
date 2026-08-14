@@ -62,7 +62,10 @@
       "Bash(curl -s -m 30 \"http://localhost:7071/api/campaigncontent/7dcc9c48-0734-40e6-95bf-660b0a5ca40c/structure\" -o structure2.json)",
       "Bash(curl -s -m 45 \"http://localhost:7071/api/campaigncontent/7dcc9c48-0734-40e6-95bf-660b0a5ca40c/structure\" -o structure3.json -w \"HTTP %{http_code}\\\\n\")",
       "Bash(echo \"exit=$?\")",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/@mui/material/package.json'\\).version\\)\")",
+      "Bash(npx --no-install babel --presets @babel/preset-react,@babel/preset-env src/components/campaign/CampaignDashboard.js -o /dev/null)",
+      "Bash(BABEL_ENV=development NODE_ENV=development node -e ' *)"
     ]
   }
 }
