@@ -369,8 +369,34 @@ namespace api
             if (await EffectiveAccessAsync(userId.Value, bastion) < AccessOwner)
                 return await Json(req, HttpStatusCode.Forbidden, new { error = "Only the bastion's Owner can delete it." });
 
+            // Rooms cascade with the bastion, but activities and hirelings reach them over
+            // NO ACTION FKs, so the cascade is rejected while any of those rows still point at
+            // a room. Clear them first — the same cleanup the layout save does when it drops
+            // rooms — and land it in its own round trip so it can't be reordered after the
+            // cascade. A transaction keeps a failed delete from stranding the bastion with its
+            // activities already gone.
+            var roomIds = await _db.BastionRooms.Where(r => r.BastionId == bastionId).Select(r => r.Id).ToListAsync();
+
+            await using var tx = await _db.Database.BeginTransactionAsync();
+
+            if (roomIds.Count > 0)
+            {
+                var acts = await _db.BastionActivities.Where(a => roomIds.Contains(a.BastionRoomId)).ToListAsync();
+                if (acts.Count > 0) _db.BastionActivities.RemoveRange(acts);   // their hireling links cascade
+
+                // Hirelings are campaign-scoped — return them to the campaign pool, don't delete them.
+                var assigned = await _db.BastionHirelings
+                    .Where(h => h.BastionRoomId != null && roomIds.Contains(h.BastionRoomId.Value))
+                    .ToListAsync();
+                foreach (var h in assigned) h.BastionRoomId = null;
+
+                await _db.SaveChangesAsync();
+            }
+
             _db.CampaignBastions.Remove(bastion);
             await _db.SaveChangesAsync();
+            await tx.CommitAsync();
+
             return await Json(req, HttpStatusCode.OK, new { deleted = true });
         }
 
