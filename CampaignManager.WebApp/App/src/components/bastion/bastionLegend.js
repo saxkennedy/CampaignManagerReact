@@ -25,7 +25,7 @@ const named = (r) => (r.name || '').trim();
 const fallbackName = (r) =>
     named(r) || (r.kind === ELEMENT_KINDS.hallway ? 'Hallway' : 'Stairs');
 
-// The swatch mirrors how the element is painted on the map: its own colour when it
+// The swatch mirrors how the element is painted on the map: its own color when it
 // has one, otherwise the default for its kind.
 const swatchColor = (r) => r.color || KIND_COLORS[r.kind] || '#8888aa';
 
@@ -144,7 +144,7 @@ export function drawLegend(ctx, { entries, x, y, scale = 1, translucent = true }
         const fs = e.minor ? m.minorFontSize : m.fontSize;
         const sw = fs + m.swatchPad * 2;
 
-        // Swatch in the element's own colour, with the key sitting on top of it, so a
+        // Swatch in the element's own color, with the key sitting on top of it, so a
         // reader can match a legend row to a block on the map at a glance.
         ctx.fillStyle = e.color || '#8888aa';
         roundRect(ctx, x + m.pad, ty, sw, sw, Math.max(1, 2 * scale));

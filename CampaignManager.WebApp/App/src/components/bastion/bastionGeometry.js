@@ -277,11 +277,11 @@ export function layoutRoomLabel(name, cells) {
     return { text: lines.join('\n'), lines, pillW, pillH, wrapped: fitsWrapped, roomW, roomH };
 }
 
-// Where to centre a room's label, in (fractional) cell coordinates.
+// Where to center a room's label, in (fractional) cell coordinates.
 //
 // Snapping to a filled cell's CENTRE quietly biases every even-sized room up and to
 // the left: in a 4x4 the centroid sits at (2,2), equidistant
-// from the cells centred on 1.5 and 2.5, and the scan picks the first — half a square
+// from the cells centered on 1.5 and 2.5, and the scan picks the first — half a square
 // off in both axes. So use the true centroid whenever it actually lands on a filled
 // square, and only fall back to the nearest filled cell for concave shapes where the
 // centroid drops into a hole.

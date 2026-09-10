@@ -1105,7 +1105,7 @@ export default function BastionBuilder({ user }) {
                                                     // anchor the pill over a real filled square nearest the shape centroid
                                                     const [ax, ay] = labelAnchorPoint(r.cells);
                                                     const ccx = ax * CELL, ccy = ay * CELL;
-                                                    // centre on the anchor square, then clamp within the room bounds
+                                                    // center on the anchor square, then clamp within the room bounds
                                                     const px = Math.round(Math.min(Math.max(ccx - lay.pillW / 2, 2), Math.max(2, lay.roomW - lay.pillW - 2)));
                                                     const py = Math.round(Math.min(Math.max(ccy - lay.pillH / 2, 2), Math.max(2, lay.roomH - lay.pillH - 2)));
                                                     return (
@@ -1138,7 +1138,7 @@ export default function BastionBuilder({ user }) {
                                                     if (!key) return null;
                                                     const FS = 10;
                                                     const roomW = b.w * CELL, roomH = b.h * CELL;
-                                                    // same float-fit as the name pill: centre on a real filled square, then clamp
+                                                    // same float-fit as the name pill: center on a real filled square, then clamp
                                                     const [ax, ay] = labelAnchorPoint(r.cells);
                                                     const ccx = ax * CELL, ccy = ay * CELL;
                                                     const boxW = Math.min(Math.ceil(key.length * FS * 0.7) + 4, Math.max(CELL - 2, roomW - 2));
