@@ -414,6 +414,7 @@ public partial class CampaignManagerContext : DbContext
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.DisplayName).IsRequired();
+            entity.Property(e => e.Editable).HasAnnotation("Relational:DefaultConstraintName", "DF_CampaignCategoryContentXREF_Editable");
 
             entity.HasOne(d => d.Campaign).WithMany(p => p.CampaignCategoryContentXrefs)
                 .HasForeignKey(d => d.CampaignId)

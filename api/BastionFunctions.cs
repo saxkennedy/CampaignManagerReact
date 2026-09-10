@@ -60,6 +60,7 @@ namespace api
             public int? MaxHeight { get; set; }
             public List<FloorDto>? Floors { get; set; }   // null = leave floors unchanged
             public List<RoomDto>? Rooms { get; set; }      // null = leave rooms unchanged
+            public string? SettingsJson { get; set; } // null = leave view settings unchanged
         }
 
         private sealed class FloorDto
@@ -220,6 +221,7 @@ namespace api
                 maxWidth = bastion.MaxWidth,
                 maxHeight = bastion.MaxHeight,
                 currentTurn = bastion.CurrentTurn,
+                settingsJson = bastion.SettingsJson,
                 isActive = bastion.IsActive,
                 accessLevel = LevelName(access),
                 floors,
@@ -249,6 +251,8 @@ namespace api
             if (!string.IsNullOrWhiteSpace(body.Name)) bastion.Name = body.Name.Trim();
             if (body.MaxWidth.HasValue) bastion.MaxWidth = Clamp(body.MaxWidth.Value, 1, 200);
             if (body.MaxHeight.HasValue) bastion.MaxHeight = Clamp(body.MaxHeight.Value, 1, 200);
+            if (body.SettingsJson != null)
+                bastion.SettingsJson = string.IsNullOrWhiteSpace(body.SettingsJson) ? null : body.SettingsJson;
 
             // ---- floors (upsert by Level; only when a non-empty set is supplied) ----
             if (body.Floors is { Count: > 0 })
@@ -347,6 +351,7 @@ namespace api
                 name = bastion.Name,
                 maxWidth = bastion.MaxWidth,
                 maxHeight = bastion.MaxHeight,
+                settingsJson = bastion.SettingsJson,
                 floors = await LoadFloorsAsync(bastionId),
                 rooms = await LoadRoomsAsync(bastionId),
                 roomIdMap

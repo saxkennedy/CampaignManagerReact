@@ -48,6 +48,15 @@ class ActivityService {
         if (!res.ok) throw new Error(data?.error || `Failed to load your actions (${res.status})`);
         return data;
     }
+
+    // DM-only per-player readout for one segment:
+    // { segment, players: [{ userId, playerName, totals, rooms, characters }] }.
+    async getSegmentLog(segmentId) {
+        const res = await UserService.authFetch(`/api/turn-segments/${segmentId}/log`, { method: 'GET' });
+        const data = await parseJson(res);
+        if (!res.ok) throw new Error(data?.error || `Failed to load the segment log (${res.status})`);
+        return data;
+    }
 }
 
 export default new ActivityService();

@@ -76,23 +76,6 @@ export function cellBounds(cells) {
     return { w: maxX + 1, h: maxY + 1 };
 }
 
-// The filled cell on which to anchor a room's label. We center the label over an
-// ACTUAL square (the filled cell whose center is nearest the shape centroid) so the
-// title never floats over a hole in a concave/L-shaped room, and it re-picks itself
-// as cells are added/removed while editing. Returns [dx, dy].
-export function labelAnchorCell(cells) {
-    if (!cells || cells.length === 0) return [0, 0];
-    let cx = 0, cy = 0;
-    for (const [x, y] of cells) { cx += x + 0.5; cy += y + 0.5; }
-    cx /= cells.length; cy /= cells.length;
-    let best = cells[0], bestD = Infinity;
-    for (const [x, y] of cells) {
-        const dx = x + 0.5 - cx, dy = y + 0.5 - cy;
-        const d = dx * dx + dy * dy;
-        if (d < bestD) { bestD = d; best = [x, y]; }
-    }
-    return best;
-}
 
 // Parse a room's stored GeometryJson string into { cells, target? }.
 export function parseGeometry(geometryJson) {
@@ -195,4 +178,136 @@ export function firstFit(cells, occ, maxW, maxH) {
         }
     }
     return null;
+}
+
+// The filled cell to park a room's hireling marker on: the bottom-right-most filled
+// cell in reading order. That keeps it clear of the name pill, which anchors near the
+// shape's centroid — they only collide in a single-cell room, where nothing else fits.
+export function hirelingAnchorCell(cells) {
+    if (!cells || cells.length === 0) return [0, 0];
+    let best = cells[0];
+    for (const [x, y] of cells) {
+        if (y > best[1] || (y === best[1] && x > best[0])) best = [x, y];
+    }
+    return best;
+}
+
+// Legend keys: A..Z, then AA, AB, …
+export function legendLetter(index) {
+    let n = index + 1, s = '';
+    while (n > 0) {
+        const r = (n - 1) % 26;
+        s = String.fromCharCode(65 + r) + s;
+        n = Math.floor((n - 1) / 26);
+    }
+    return s;
+}
+
+// ---------- room name layout ----------
+// Names wrap across lines when the wrapped block still fits inside the room, and fall
+// back to a single ellipsised line when even one word is too wide for the space. A 4×4
+// "Artificer's Forge" wraps onto two lines; a 2×2 "Cabinet of Curiosities" cannot fit
+// "Cabinet" on a line at all, so it stays "Ca…" and leans on hover and the legend.
+export const NAME_FS = 11;
+export const NAME_PADX = 6;
+export const NAME_PADY = 3;
+export const NAME_LINE_H = 13;
+
+// Konva renders these with its default Arial face, so we measure against the very
+// same font instead of guessing from character counts — a bold string runs wider
+// than a per-character estimate, which is what left "Artificer's…" clipped inside a
+// pill that was supposedly wide enough. Measurements are cached; rooms re-render on
+// every drag frame.
+export const NAME_FONT = 'Arial, sans-serif';
+
+let measureCtx = null;
+const widthCache = new Map();
+
+function textWidth(s) {
+    const str = s || '';
+    const hit = widthCache.get(str);
+    if (hit !== undefined) return hit;
+
+    let w;
+    if (typeof document === 'undefined') {
+        w = str.length * NAME_FS * 0.58;   // no DOM (tests): fall back to the estimate
+    } else {
+        if (!measureCtx) measureCtx = document.createElement('canvas').getContext('2d');
+        measureCtx.font = `bold ${NAME_FS}px ${NAME_FONT}`;
+        w = measureCtx.measureText(str).width;
+    }
+    if (widthCache.size > 500) widthCache.clear();
+    widthCache.set(str, w);
+    return w;
+}
+
+export function layoutRoomLabel(name, cells) {
+    const b = cellBounds(cells);
+    const roomW = b.w * CELL, roomH = b.h * CELL;
+    const maxPillW = Math.max(CELL - 4, roomW - 4);
+    const maxPillH = Math.max(NAME_FS + NAME_PADY * 2, roomH - 4);
+    const inner = maxPillW - NAME_PADX * 2;
+
+    const label = String(name || '');
+    const words = label.split(/\s+/).filter(Boolean);
+
+    // Greedy wrap, but only when every word can stand on a line of its own — otherwise
+    // wrapping just moves the truncation around without showing more of the name.
+    let wrappedLines = [];
+    if (words.length > 1 && words.every((w) => textWidth(w) <= inner)) {
+        let cur = words[0];
+        for (let i = 1; i < words.length; i++) {
+            const next = `${cur} ${words[i]}`;
+            if (textWidth(next) <= inner) cur = next;
+            else { wrappedLines.push(cur); cur = words[i]; }
+        }
+        wrappedLines.push(cur);
+    }
+
+    const fitsWrapped = wrappedLines.length > 1
+        && wrappedLines.length * NAME_LINE_H + NAME_PADY * 2 <= maxPillH;
+
+    const lines = fitsWrapped ? wrappedLines : [label];
+    const widest = Math.max(...lines.map(textWidth));
+    const pillW = Math.min(Math.ceil(widest) + 1 + NAME_PADX * 2, maxPillW);
+    const pillH = lines.length === 1
+        ? NAME_FS + NAME_PADY * 2
+        : lines.length * NAME_LINE_H + NAME_PADY * 2;
+
+    return { text: lines.join('\n'), lines, pillW, pillH, wrapped: fitsWrapped, roomW, roomH };
+}
+
+// Where to centre a room's label, in (fractional) cell coordinates.
+//
+// Snapping to a filled cell's CENTRE quietly biases every even-sized room up and to
+// the left: in a 4x4 the centroid sits at (2,2), equidistant
+// from the cells centred on 1.5 and 2.5, and the scan picks the first — half a square
+// off in both axes. So use the true centroid whenever it actually lands on a filled
+// square, and only fall back to the nearest filled cell for concave shapes where the
+// centroid drops into a hole.
+export function labelAnchorPoint(cells) {
+    if (!cells || cells.length === 0) return [0.5, 0.5];
+    let cx = 0, cy = 0;
+    for (const [x, y] of cells) { cx += x + 0.5; cy += y + 0.5; }
+    cx /= cells.length; cy /= cells.length;
+
+    const overFilled = cells.some(([x, y]) => cx >= x && cx <= x + 1 && cy >= y && cy <= y + 1);
+    if (overFilled) return [cx, cy];
+
+    let best = cells[0], bestD = Infinity;
+    for (const [x, y] of cells) {
+        const dx = x + 0.5 - cx, dy = y + 0.5 - cy;
+        const d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = [x, y]; }
+    }
+    return [best[0] + 0.5, best[1] + 0.5];
+}
+
+// True when the whole name is actually readable on the map — either it fits on one
+// line, or it wrapped and every line fitted. Drives the "only list names that don't
+// fit" legend option, so the two can never disagree about what "fits" means.
+export function roomNameFits(name, cells) {
+    const lay = layoutRoomLabel(name, cells);
+    if (lay.wrapped) return true;
+    return textWidth(name) <= lay.pillW - NAME_PADX * 2;
 }

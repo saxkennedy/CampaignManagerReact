@@ -27,6 +27,8 @@ public partial class CampaignBastion
 
     public byte[] RowVersion { get; set; }
 
+    public string SettingsJson { get; set; }
+
     public virtual ICollection<BastionCharacter> BastionCharacters { get; set; } = new List<BastionCharacter>();
 
     public virtual ICollection<BastionFloor> BastionFloors { get; set; } = new List<BastionFloor>();

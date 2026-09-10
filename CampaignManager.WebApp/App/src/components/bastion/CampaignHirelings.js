@@ -7,6 +7,7 @@ import {
 import HirelingService from '../../api/HirelingService';
 import BastionService from '../../api/BastionService';
 import PotionLoader from '../utilities/PotionLoader';
+import { WIDE_DIALOG_PROPS } from './dialogSizing';
 
 // The campaign's whole hireling pool: an Unassigned group plus everyone assigned to a
 // room (grouped by bastion → room). A DM can add to the pool, assign hirelings to rooms
@@ -102,7 +103,7 @@ export default function CampaignHirelings({ open, onClose, campaignId, bastionId
     );
 
     return (
-        <Dialog open={open} onClose={busy ? undefined : onClose} maxWidth="sm" fullWidth>
+        <Dialog open={open} onClose={busy ? undefined : onClose} {...WIDE_DIALOG_PROPS}>
             <DialogTitle>Campaign Hirelings</DialogTitle>
             <DialogContent dividers>
                 {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}

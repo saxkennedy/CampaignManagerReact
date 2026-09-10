@@ -154,6 +154,155 @@ namespace api
             return await Json(req, HttpStatusCode.OK, new { segments = result });
         }
 
+        // ============================ SEGMENT LOG (DM readout) ============================
+        // GET /api/turn-segments/{segmentId}/log — a per-player summary of what was spent
+        // in this segment: totals, which rooms each player leaned on, and the actions
+        // themselves. DM-only; players read their own through the activities list.
+        [Function("Activities_SegmentLog")]
+        public async Task<HttpResponseData> SegmentLog(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "turn-segments/{segmentId:guid}/log")] HttpRequestData req,
+            Guid segmentId)
+        {
+            var userId = Authenticate(req);
+            if (userId == null) return req.CreateResponse(HttpStatusCode.Unauthorized);
+
+            var segment = await _db.BastionTurnSegments.AsNoTracking().FirstOrDefaultAsync(s => s.Id == segmentId);
+            if (segment == null) return req.CreateResponse(HttpStatusCode.NotFound);
+
+            var campaignId = await CampaignIdForBastionAsync(segment.BastionId);
+            if (campaignId == null) return req.CreateResponse(HttpStatusCode.NotFound);
+
+            if (!await IsCampaignDmAsync(userId.Value, campaignId.Value))
+                return await Json(req, HttpStatusCode.Forbidden, new { error = "Only a DM can read the segment log." });
+
+            var acts = await (
+                from a in _db.BastionActivities.AsNoTracking()
+                where a.SegmentId == segmentId
+                join c in _db.Characters on a.CharacterId equals c.Id
+                join r in _db.BastionRooms on a.BastionRoomId equals r.Id
+                from u in _db.Users.Where(x => x.Id == c.UserId).DefaultIfEmpty()
+                orderby a.StartDay, a.DateAdded
+                select new
+                {
+                    a.Id,
+                    a.CharacterId,
+                    characterName = c.Name,
+                    ownerUserId = c.UserId,
+                    ownerFirstName = u != null ? u.FirstName : null,
+                    ownerLastName = u != null ? u.LastName : null,
+                    ownerEmail = u != null ? u.Email : null,
+                    a.BastionRoomId,
+                    roomName = r.Name,
+                    a.ActionKind,
+                    a.OrderType,
+                    a.Title,
+                    a.TurnsCost,
+                    a.LongRestsCost,
+                    a.StartDay,
+                    a.DurationDays,
+                    a.Status,
+                    a.ResultSummary,
+                }).ToListAsync();
+
+            var ids = acts.Select(a => a.Id).ToList();
+            var hires = await (
+                from ah in _db.BastionActivityHirelings.AsNoTracking()
+                where ids.Contains(ah.ActivityId)
+                join h in _db.BastionHirelings on ah.BastionHirelingId equals h.Id
+                select new { ah.ActivityId, id = h.Id, name = h.Name }).ToListAsync();
+            var hByAct = hires.GroupBy(h => h.ActivityId).ToDictionary(g => g.Key, g => g.ToList());
+
+            var players = acts
+                .GroupBy(a => a.ownerUserId)
+                .Select(g =>
+                {
+                    var first = g.First();
+                    var name = string.Join(" ", new[] { first.ownerFirstName, first.ownerLastName }
+                        .Where(s => !string.IsNullOrWhiteSpace(s))).Trim();
+                    if (string.IsNullOrWhiteSpace(name)) name = first.ownerEmail ?? "Unassigned";
+
+                    // Cancelled actions still show, but they cost nothing — the same rule
+                    // the budget maths in the activities dialog uses.
+                    var live = g.Where(a => a.Status != StatusCancelled).ToList();
+
+                    return new
+                    {
+                        sortName = name,
+                        payload = (object)new
+                        {
+                            userId = g.Key,
+                            playerName = name,
+                            totals = new
+                            {
+                                actions = g.Count(),
+                                turnsSpent = live.Sum(a => a.TurnsCost),
+                                restsSpent = live.Sum(a => a.LongRestsCost),
+                                planned = g.Count(a => a.Status == "Planned"),
+                                completed = g.Count(a => a.Status == "Completed"),
+                                cancelled = g.Count(a => a.Status == StatusCancelled),
+                            },
+                            rooms = live
+                                .GroupBy(a => new { a.BastionRoomId, a.roomName })
+                                .Select(rg => new
+                                {
+                                    bastionRoomId = rg.Key.BastionRoomId,
+                                    roomName = rg.Key.roomName,
+                                    uses = rg.Count(),
+                                    turnsSpent = rg.Sum(a => a.TurnsCost),
+                                    restsSpent = rg.Sum(a => a.LongRestsCost),
+                                })
+                                .OrderByDescending(r => r.uses).ThenBy(r => r.roomName)
+                                .ToList<object>(),
+                            characters = g
+                                .GroupBy(a => new { a.CharacterId, a.characterName })
+                                .Select(cg => new
+                                {
+                                    characterId = cg.Key.CharacterId,
+                                    name = cg.Key.characterName,
+                                    turnsSpent = cg.Where(a => a.Status != StatusCancelled).Sum(a => a.TurnsCost),
+                                    restsSpent = cg.Where(a => a.Status != StatusCancelled).Sum(a => a.LongRestsCost),
+                                    activities = cg.Select(a => (object)new
+                                    {
+                                        id = a.Id,
+                                        bastionRoomId = a.BastionRoomId,
+                                        roomName = a.roomName,
+                                        actionKind = a.ActionKind,
+                                        orderType = a.OrderType,
+                                        title = a.Title,
+                                        turnsCost = a.TurnsCost,
+                                        longRestsCost = a.LongRestsCost,
+                                        startDay = a.StartDay,
+                                        durationDays = a.DurationDays,
+                                        status = a.Status,
+                                        resultSummary = a.ResultSummary,
+                                        hirelings = hByAct.TryGetValue(a.Id, out var hl)
+                                            ? hl.Select(h => new { h.id, h.name }).ToList<object>() : new List<object>(),
+                                    }).ToList(),
+                                })
+                                .OrderBy(c => c.name)
+                                .ToList<object>(),
+                        }
+                    };
+                })
+                .OrderBy(p => p.sortName)
+                .Select(p => p.payload)
+                .ToList();
+
+            return await Json(req, HttpStatusCode.OK, new
+            {
+                segment = new
+                {
+                    id = segment.Id,
+                    title = segment.Title,
+                    status = segment.Status,
+                    turnsGranted = segment.TurnsGranted,
+                    daysGranted = segment.DaysGranted,
+                    longRestsPerDay = segment.LongRestsPerDay,
+                },
+                players
+            });
+        }
+
         // ============================ CREATE ============================
         // POST /api/turn-segments/{segmentId}/activities
         [Function("Activities_Create")]

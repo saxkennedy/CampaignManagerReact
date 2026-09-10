@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import ActivityService from '../../api/ActivityService';
 import PotionLoader from '../utilities/PotionLoader';
+import { WIDE_DIALOG_PROPS } from './dialogSizing';
 
 const scheduleText = (a) => a.startDay == null ? 'unscheduled' : `day ${a.startDay}${a.durationDays > 1 ? `–${a.startDay + a.durationDays - 1}` : ''}`;
 
@@ -29,7 +30,7 @@ export default function MyActionsDialog({ open, onClose, bastionId }) {
     useEffect(() => { if (open) load(); }, [open, load]);
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+        <Dialog open={open} onClose={onClose} {...WIDE_DIALOG_PROPS}>
             <DialogTitle>My Actions</DialogTitle>
             <DialogContent dividers>
                 {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}

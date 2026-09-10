@@ -66,7 +66,17 @@
       "Bash(node -e \"console.log\\(require\\('./node_modules/@mui/material/package.json'\\).version\\)\")",
       "Bash(npx --no-install babel --presets @babel/preset-react,@babel/preset-env src/components/campaign/CampaignDashboard.js -o /dev/null)",
       "Bash(BABEL_ENV=development NODE_ENV=development node -e ' *)",
-      "Bash(BUILD_PATH=\"C:/Users/Ender/AppData/Local/Temp/claude/C--Users-Ender-source-repos-saxkennedy-CampaignManagerReact/d31f1eeb-4e13-4cd4-b685-62aa139b7e09/scratchpad/build-check\" CI=false npm run build)"
+      "Bash(BUILD_PATH=\"C:/Users/Ender/AppData/Local/Temp/claude/C--Users-Ender-source-repos-saxkennedy-CampaignManagerReact/d31f1eeb-4e13-4cd4-b685-62aa139b7e09/scratchpad/build-check\" CI=false npm run build)",
+      "PowerShell(git config *)",
+      "WebFetch(domain:github.com)",
+      "PowerShell(git fetch *)",
+      "PowerShell(& \"C:\\\\Users\\\\Ender\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-Ender-source-repos-saxkennedy-CampaignManagerReact\\\\efe38be9-14ae-4fe8-af90-d3fc8a17aeb7\\\\scratchpad\\\\getlog.ps1\")",
+      "Bash(echo *)",
+      "Bash(cd *)",
+      "PowerShell(Get-Process *)",
+      "Bash($PY *)",
+      "Bash(rm -rf __TRACKED_VAR__/appbuild)",
+      "Bash(BUILD_PATH=__TRACKED_VAR__/appbuild CI=true npm run build)"
     ]
   }
 }

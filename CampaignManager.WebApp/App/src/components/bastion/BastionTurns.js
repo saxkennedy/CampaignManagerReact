@@ -6,11 +6,13 @@ import {
     Tooltip,
 } from '@mui/material';
 import PotionLoader from '../utilities/PotionLoader';
+import { WIDE_DIALOG_PROPS } from './dialogSizing';
 import BastionTurnService from '../../api/BastionTurnService';
 import BastionService from '../../api/BastionService';
 import ConfirmDialog from '../utilities/ConfirmDialog';
 import BastionBankPanel, { computeMyBank } from './BastionBankPanel';
 import SegmentActivities from './SegmentActivities';
+import SegmentLog from './SegmentLog';
 
 const ownerName = (c) => {
     const n = [c.ownerFirstName, c.ownerLastName].filter(Boolean).join(' ').trim();
@@ -30,6 +32,7 @@ const BastionTurns = ({ open, onClose, bastionId, bastionName, campaignId }) => 
     const [form, setForm] = useState(null); // null = form closed
     const [confirm, setConfirm] = useState(null); // { title, message, confirmLabel, color, action }
     const [activitiesFor, setActivitiesFor] = useState(null); // segment whose activities dialog is open
+    const [logFor, setLogFor] = useState(null);               // segment whose DM log dialog is open
 
     const load = useCallback(async () => {
         try {
@@ -218,6 +221,7 @@ const BastionTurns = ({ open, onClose, bastionId, bastionName, campaignId }) => 
                     <Chip size="small" label={s.status} color={isOpen ? 'success' : 'default'} />
                     <Box sx={{ flex: 1 }} />
                     <Button size="small" variant="outlined" onClick={() => setActivitiesFor(s)}>Activities</Button>
+                    {canManage && <Button size="small" variant="outlined" onClick={() => setLogFor(s)}>Log</Button>}
                     {canManage && (
                         <>
                             {isOpen && <Button size="small" onClick={() => openEdit(s)} disabled={busy}>Edit</Button>}
@@ -265,7 +269,7 @@ const BastionTurns = ({ open, onClose, bastionId, bastionName, campaignId }) => 
     };
 
     return (
-        <Dialog open={open} onClose={busy ? undefined : onClose} maxWidth="md" fullWidth>
+        <Dialog open={open} onClose={busy ? undefined : onClose} {...WIDE_DIALOG_PROPS}>
             <DialogTitle>Segments — {bastionName}</DialogTitle>
             <DialogContent dividers>
                 {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
@@ -322,6 +326,14 @@ const BastionTurns = ({ open, onClose, bastionId, bastionName, campaignId }) => 
                     bastionId={bastionId}
                     campaignId={campaignId}
                     onClose={() => { setActivitiesFor(null); load(); }}
+                />
+            )}
+
+            {logFor && (
+                <SegmentLog
+                    open={!!logFor}
+                    segment={logFor}
+                    onClose={() => setLogFor(null)}
                 />
             )}
         </Dialog>

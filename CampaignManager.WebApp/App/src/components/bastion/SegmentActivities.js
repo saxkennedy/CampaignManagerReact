@@ -11,6 +11,7 @@ import HirelingService from '../../api/HirelingService';
 import BastionFacilityService from '../../api/BastionFacilityService';
 import ConfirmDialog from '../utilities/ConfirmDialog';
 import { parseAllowedSizes } from './bastionGeometry';
+import { WIDE_DIALOG_PROPS } from './dialogSizing';
 
 function orderForFacility(fac) {
     if (!fac?.ordersJson) return null;
@@ -285,7 +286,7 @@ export default function SegmentActivities({ open, onClose, segment, bastionId, c
     );
 
     return (
-        <Dialog open={open} onClose={busy ? undefined : onClose} maxWidth="md" fullWidth>
+        <Dialog open={open} onClose={busy ? undefined : onClose} {...WIDE_DIALOG_PROPS}>
             <DialogTitle>Activities — {segment.title || 'Segment'}</DialogTitle>
             <DialogContent dividers>
                 {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
